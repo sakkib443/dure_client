@@ -75,16 +75,17 @@ export default function BrandStory() {
                         viewport={{ once: true }}
                         transition={{ duration: 0.7, delay: 0.15 }}
                     >
+                        <span className="font-bangla text-xs font-bold uppercase tracking-widest mb-2 block" style={{ color: '#6B0F1A' }}>আমাদের গল্প</span>
                         <h2
-                            className="font-display text-[#5F0000] font-bold mb-5"
-                            style={{ fontSize: 'clamp(2rem, 4vw, 2.8rem)', lineHeight: 1.25 }}
+                            className="font-display text-[#5F0000] font-bold mb-3"
+                            style={{ fontSize: 'clamp(1.6rem, 3.5vw, 2.4rem)', lineHeight: 1.25 }}
                         >
-                            মাটির টানে,<br />সুতোর বন্ধনে
+                            মাটির টানে, সুতোর বন্ধনে
                         </h2>
 
                         <p
-                            className="font-bangla text-gray-700 mb-4 text-justify"
-                            style={{ fontSize: '1.05rem', lineHeight: 2 }}
+                            className="font-bangla text-gray-700 mb-2 text-justify"
+                            style={{ fontSize: '0.92rem', lineHeight: 1.8 }}
                         >
                             জামদানি — এই একটি শব্দেই মিশে আছে বাংলার হাজার বছরের ঐতিহ্য, একজন তাঁতির
                             অক্লান্ত পরিশ্রম আর একটি সংস্কৃতির অহংকার। ঢাকার নারায়ণগঞ্জ থেকে শুরু করে
@@ -92,8 +93,8 @@ export default function BrandStory() {
                         </p>
 
                         <p
-                            className="font-bangla text-gray-700 mb-6 text-justify"
-                            style={{ fontSize: '1.05rem', lineHeight: 2 }}
+                            className="font-bangla text-gray-700 mb-3 text-justify"
+                            style={{ fontSize: '0.92rem', lineHeight: 1.8 }}
                         >
                             আমরা <strong style={{ color: '#800000' }}>জামদানি</strong>-তে বিশ্বাস করি যে
                             প্রতিটি পোশাকই একটি গল্প বলে। সেই গল্পে আছে কারিগরের ভালোবাসা, প্রকৃতির রং

@@ -51,31 +51,23 @@ export default function HomeProductCollection() {
                 <motion.div
                     initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true }} transition={{ duration: 0.6 }}
-                    className="flex items-end justify-between mb-8 gap-4"
+                    className="flex flex-col items-center text-center mb-8"
                 >
-                    <div>
-                        {/* Decorative */}
-                        <div className="flex items-center gap-3 mb-2">
-                            <span className="block w-10 h-px bg-[#C9A227]" />
-                            <span className="text-[#C9A227] text-sm">◆</span>
-                        </div>
-                        <h2
-                            className="font-display text-[#5F0000] font-bold"
-                            style={{ fontSize: 'clamp(1.8rem, 4vw, 2.6rem)', lineHeight: 1.2 }}
-                        >
-                            সেরা পণ্য সংগ্রহ
-                        </h2>
-                        <p className="font-bangla text-gray-600 mt-1" style={{ fontSize: '0.95rem' }}>
-                            হাতে বাছাই করা সেরা পণ্যগুলো
-                        </p>
+                    {/* Decorative */}
+                    <div className="flex items-center gap-3 mb-2">
+                        <span className="block w-10 h-px bg-[#C9A227]" />
+                        <span className="text-[#C9A227] text-sm">◆</span>
+                        <span className="block w-10 h-px bg-[#C9A227]" />
                     </div>
-                    <Link
-                        href="/products"
-                        className="font-bangla-round shrink-0 text-sm font-semibold border border-[#800000] text-[#800000] hover:bg-[#800000] hover:text-white px-5 py-2.5 transition-all duration-300"
-                        style={{ borderRadius: 2 }}
+                    <h2
+                        className="font-display text-[#5F0000] font-bold"
+                        style={{ fontSize: 'clamp(1.8rem, 4vw, 2.6rem)', lineHeight: 1.2 }}
                     >
-                        সব পণ্য →
-                    </Link>
+                        সেরা পণ্য সংগ্রহ
+                    </h2>
+                    <p className="font-bangla text-gray-600 mt-1" style={{ fontSize: '0.95rem' }}>
+                        হাতে বাছাই করা সেরা পণ্যগুলো
+                    </p>
                 </motion.div>
 
                 {/* ── Divider ── */}
