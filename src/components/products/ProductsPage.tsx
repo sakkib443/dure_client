@@ -15,7 +15,11 @@ import {
 
 const LIMIT = 24;
 
+// Default "popularity" sort: most sold → best rated → most viewed → newest (tiebreaker)
+const DEFAULT_SORT = '-totalSold,-rating,-viewCount,-createdAt';
+
 const SORT_OPTIONS = [
+    { label: 'জনপ্রিয় আগে',      value: DEFAULT_SORT },
     { label: 'নতুন আগে',         value: '-createdAt' },
     { label: 'কম দামে আগে',      value: 'price'      },
     { label: 'বেশি দামে আগে',    value: '-price'     },
@@ -353,7 +357,7 @@ const ProductsPage: React.FC = () => {
     const sortParam     = searchParams.get('sort') || '';
 
     const [page,             setPage]             = useState(1);
-    const [sortBy,           setSortBy]           = useState(sortParam === 'newest' ? '-createdAt' : '-createdAt');
+    const [sortBy,           setSortBy]           = useState(sortParam === 'newest' ? '-createdAt' : DEFAULT_SORT);
     const [showSortDropdown, setShowSortDropdown] = useState(false);
     const [showMobileFilter, setShowMobileFilter] = useState(false);
     const [categories,       setCategories]       = useState<any[]>([]);
@@ -381,22 +385,23 @@ const ProductsPage: React.FC = () => {
             if (isId) {
                 setSelectedCategory(categoryParam);
             } else {
-                // Try matching by slug or name (case-insensitive)
-                const match = categories.find(c =>
-                    c.slug?.toLowerCase() === categoryParam.toLowerCase() ||
-                    c.name?.toLowerCase().includes(categoryParam.toLowerCase())
-                );
-                if (match) {
-                    setSelectedCategory(match._id);
-                } else {
-                    setSelectedCategory('');
-                }
+                const lower = categoryParam.toLowerCase();
+                // 1) exact slug match  2) parent (level 0) partial slug  3) any partial slug/name
+                let match =
+                    categories.find(c => c.slug?.toLowerCase() === lower) ||
+                    categories.find(c => (c.level === 0 || !c.parent) && c.slug?.toLowerCase().includes(lower)) ||
+                    categories.find(c =>
+                        c.slug?.toLowerCase().includes(lower) ||
+                        c.name?.toLowerCase().includes(lower)
+                    );
+                setSelectedCategory(match ? match._id : '');
             }
         } else if (!categoryParam) {
             setSelectedCategory('');
         }
         setLocalSearch(searchParam);
-        if (sortParam === 'newest') setSortBy('-createdAt');
+        // No sort param → popular first; ?sort=newest → newest first
+        setSortBy(sortParam === 'newest' ? '-createdAt' : DEFAULT_SORT);
         setPage(1);
     }, [categoryParam, searchParam, sortParam, categories]);
 

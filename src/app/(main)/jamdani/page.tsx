@@ -43,7 +43,9 @@ export default function JamdaniPage() {
         return ids;
     }, [jamdaniParent, jamdaniSubs]);
 
-    const activeCategoryId = selectedSub || (jamdaniSubs[0]?._id ?? jamdaniParent?._id ?? '');
+    // "All Jamdani" (no sub selected) → use PARENT id so the backend returns
+    // the parent + every descendant subcategory's products recursively.
+    const activeCategoryId = selectedSub || jamdaniParent?._id || jamdaniSubs[0]?._id || '';
 
     const { data: productsData, isLoading } = useGetProductsQuery(
         { category: activeCategoryId, limit: 40, sort: '-createdAt' },

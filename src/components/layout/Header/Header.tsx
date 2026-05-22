@@ -2,7 +2,7 @@
 
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import {
     FiShoppingCart, FiSearch, FiX, FiUpload, FiUser, FiHeart,
     FiPhone, FiMenu, FiChevronDown,
@@ -22,11 +22,11 @@ const SOFT_BG  = '#F5EDE0'; // warm soft beige
 
 /* ─── Nav links ─────────────────────────────────────────────────── */
 const NAV_LINKS = [
-    { label: 'হোম',              href: '/',                          icon: '🏠' },
-    { label: 'সব পণ্য',          href: '/products',                   icon: '🧺' },
-    { label: 'জামদানি',          href: '/products?category=jamdani',  icon: '🥻' },
-    { label: 'নতুন কালেকশন',    href: '/products?sort=newest',       icon: '✨' },
-    { label: 'যোগাযোগ',         href: '/contact',                    icon: '📞' },
+    { label: 'হোম',              href: '/',                                icon: '🏠' },
+    { label: 'সব পণ্য',          href: '/products',                         icon: '🧺' },
+    { label: 'জামদানি',          href: '/products?category=jamdani-saree',  icon: '🥻' },
+    { label: 'নতুন কালেকশন',    href: '/products?sort=newest',             icon: '✨' },
+    { label: 'যোগাযোগ',         href: '/contact',                          icon: '📞' },
 ];
 
 /* ─── Bengali floral / leaf SVG pattern for header background ──── */
@@ -136,6 +136,7 @@ function BanglaLogo({ small, light }: { small?: boolean; light?: boolean }) {
 const Header: React.FC = () => {
     const pathname = usePathname();
     const router   = useRouter();
+    const searchParams = useSearchParams();   // reactive → re-renders on query change
     const dispatch = useAppDispatch();
 
     const [isMobileMenuOpen,  setIsMobileMenuOpen]  = useState(false);
@@ -232,13 +233,14 @@ const Header: React.FC = () => {
         return () => document.removeEventListener('paste', handlePaste);
     }, [handlePaste]);
 
-    const searchParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : new URLSearchParams();
     const isActive = (href: string) => {
         if (href === '/') return pathname === '/';
         const [hrefPath, hrefQuery] = href.split('?');
-        if (!hrefQuery) return pathname === hrefPath && !searchParams.has('category') && !searchParams.has('sort');
-        const hrefParams = new URLSearchParams(hrefQuery);
         if (pathname !== hrefPath) return false;
+        // Plain link (e.g. /products) is active only when NO filter query is set
+        if (!hrefQuery) return !searchParams.has('category') && !searchParams.has('sort');
+        // Query link (e.g. /products?category=...) — every param must match
+        const hrefParams = new URLSearchParams(hrefQuery);
         for (const [key, val] of hrefParams.entries()) {
             if (searchParams.get(key) !== val) return false;
         }
