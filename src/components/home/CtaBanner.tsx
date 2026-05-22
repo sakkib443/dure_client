@@ -37,62 +37,39 @@ export default function CtaBanner() {
 
             {/* ── Main CTA ── */}
             <section
-                className="w-full relative overflow-hidden"
-                style={{ background: 'linear-gradient(135deg, #1a0808 0%, #800000 45%, #5F0000 100%)', padding: '72px 0' }}
+                className="w-full bg-jamdani-motif"
+                style={{ padding: '40px 0', marginTop: '32px' }}
             >
-                {/* Background dot grid */}
-                <div
-                    className="absolute inset-0 opacity-10 pointer-events-none"
-                    style={{
-                        backgroundImage: 'radial-gradient(circle, #C9A227 1px, transparent 1px)',
-                        backgroundSize: '28px 28px',
-                    }}
-                />
-
-                {/* Decorative circles */}
-                <div className="absolute -top-20 -right-20 w-80 h-80 rounded-full opacity-10 pointer-events-none"
-                     style={{ background: 'radial-gradient(circle, #C9A227, transparent)' }} />
-                <div className="absolute -bottom-20 -left-20 w-60 h-60 rounded-full opacity-10 pointer-events-none"
-                     style={{ background: 'radial-gradient(circle, #C9A227, transparent)' }} />
-
                 <div className="container mx-auto px-4 relative z-10 text-center">
                     <motion.div
-                        initial={{ opacity: 0, y: 20 }}
+                        initial={{ opacity: 0, y: 16 }}
                         whileInView={{ opacity: 1, y: 0 }}
                         viewport={{ once: true }}
-                        transition={{ duration: 0.7 }}
+                        transition={{ duration: 0.6 }}
                     >
-                        {/* Bengali ornament */}
-                        <p className="text-[#C9A227] text-2xl mb-4 select-none">◈ ◆ ◈</p>
-
                         <h2
-                            className="font-display text-white font-bold mb-3"
-                            style={{ fontSize: 'clamp(2rem, 4.5vw, 3rem)', lineHeight: 1.25 }}
+                            className="font-display font-bold mb-2"
+                            style={{ fontSize: 'clamp(1.4rem, 3vw, 2rem)', lineHeight: 1.3, color: '#2D1008' }}
                         >
-                            আজই শুরু করুন আপনার<br />
-                            <span style={{ color: '#C9A227' }}>জামদানির যাত্রা</span>
+                            আজই শুরু করুন আপনার <span style={{ color: '#6B0F1A' }}>জামদানির যাত্রা</span>
                         </h2>
 
-                        <p
-                            className="font-bangla text-white/70 mb-8 max-w-lg mx-auto"
-                            style={{ fontSize: '1.1rem', lineHeight: 1.9 }}
-                        >
-                            বাংলার শ্রেষ্ঠ জামদানি শাড়ি, মিমিক্রি, অলংকার আর ঐতিহ্যবাহী পোশাকের সংগ্রহ
-                            এখন আপনার হাতের কাছেই।
+                        <p className="font-bangla mb-6 max-w-md mx-auto text-sm leading-relaxed" style={{ color: '#8a7560' }}>
+                            বাংলার শ্রেষ্ঠ জামদানি শাড়ি, অলংকার আর ঐতিহ্যবাহী পোশাকের সংগ্রহ এখন আপনার হাতের কাছেই।
                         </p>
 
-                        <div className="flex items-center justify-center gap-4 flex-wrap">
+                        <div className="flex items-center justify-center gap-3 flex-wrap">
                             <Link
                                 href="/products"
-                                className="font-bangla-round inline-block bg-[#C9A227] hover:bg-[#a8841e] text-[#1a0808] font-bold px-10 py-3.5 transition-all duration-300 shadow-lg hover:shadow-2xl hover:-translate-y-0.5 text-base"
-                                style={{ borderRadius: 2 }}
+                                className="font-bangla inline-block font-bold px-8 py-2.5 text-sm transition-all duration-200"
+                                style={{ background: '#6B0F1A', color: '#FDF6EC', borderRadius: 4 }}
                             >
                                 সব পণ্য দেখুন
                             </Link>
                             <Link
                                 href="/register"
-                                className="font-bangla-round inline-block border border-white/40 hover:border-white text-white hover:bg-white/10 font-bold px-10 py-3.5 transition-all duration-300 text-base"
-                                style={{ borderRadius: 2 }}
+                                className="font-bangla inline-block font-bold px-8 py-2.5 text-sm transition-all duration-200"
+                                style={{ border: '1.5px solid #d4c9b8', color: '#5a3e2b', borderRadius: 4 }}
                             >
                                 বিনামূল্যে নিবন্ধন করুন
                             </Link>
