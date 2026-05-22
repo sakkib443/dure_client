@@ -11,6 +11,7 @@ import { clearImageSearch, loadSearchHistoryFromStorage } from '@/redux/slices/i
 import { FiX, FiCamera } from 'react-icons/fi';
 import { FiSearch } from 'react-icons/fi';
 import HeroSection from './HeroSection';
+import BengaliMarqueeBand from './BengaliMarqueeBand';
 import FeaturedSections from './FeaturedSections';
 import HojoboroloCollection from './HojoboroloCollection';
 import BrandStory from './BrandStory';
@@ -220,122 +221,103 @@ const NewHomePage: React.FC = () => {
             {/* Hero Banner */}
             <HeroSection />
 
-            {/* Editorial Spotlight Sections */}
+            {/* Bengali Marquee Band */}
+            <BengaliMarqueeBand />
+
+            {/* Category Showcase */}
             <FeaturedSections />
 
-            {/* Beautiful Ho-Jo-Bo-Ro-Lo Collection */}
+            {/* Best Products Collection */}
             <HojoboroloCollection />
 
             {/* Brand Story Section */}
             <BrandStory />
 
-            <div className="container mx-auto px-2 py-6">
 
-                {/* ── Image Search Results Banner ── */}
-                {imageSearch.isActive && (
-                    <div className="mb-6 bg-white border border-gray-200 rounded-xl p-5 shadow-sm animate-fadeIn">
-                        <div className="flex items-center justify-between mb-4">
-                            <div className="flex items-center gap-4">
-                                {imageSearch.previewImage && (
-                                    <div className="w-16 h-16 rounded-xl overflow-hidden border-2 border-[var(--color-primary)]/20 shadow-sm flex-shrink-0">
-                                        <img src={imageSearch.previewImage} alt="Search" className="w-full h-full object-cover" />
-                                    </div>
-                                )}
-                                <div>
-                                    <div className="flex items-center gap-2 mb-1">
-                                        <FiCamera className="text-[var(--color-primary)]" size={16} />
-                                        <h3 className="text-lg font-bold text-gray-800">Image Search Results</h3>
-                                    </div>
-                                    <p className="text-sm text-gray-500">
-                                        Found <span className="font-bold text-[var(--color-primary)]">{imageSearch.products.length}</span> matching products
-                                        {(imageSearch.searchMeta?.labels?.length ?? 0) > 0 && (
-                                            <span> — detected: <span className="font-medium">{imageSearch.searchMeta!.labels.slice(0, 5).join(', ')}</span></span>
-                                        )}
-                                    </p>
-                                </div>
-                            </div>
-                            <button
-                                onClick={handleClearImageSearch}
-                                className="flex items-center gap-1.5 px-4 py-2 bg-gray-100 hover:bg-red-50 text-gray-500 hover:text-red-500 rounded-full text-sm font-semibold transition-colors"
-                            >
-                                <FiX size={14} />
-                                Clear
-                            </button>
+            {/* ── Search / Filter results (only shown when active) ── */}
+            {(imageSearch.isActive || imageSearch.isSearching || searchTerm || selectedCategory) && (
+                <div className="container mx-auto px-4 py-8">
+
+                    {/* Image search loading */}
+                    {imageSearch.isSearching && (
+                        <div className="mb-6 bg-white border border-[#d4c4b0] rounded p-8 text-center shadow-sm">
+                            <div className="w-12 h-12 border-4 border-[#d4c4b0] border-t-[#800000] rounded-full animate-spin mx-auto mb-4" />
+                            <p className="font-bangla font-semibold text-gray-700">
+                                ছবি বিশ্লেষণ করা হচ্ছে...
+                            </p>
                         </div>
+                    )}
 
-                        {/* Color chips */}
-                        {(imageSearch.searchMeta?.colors?.length ?? 0) > 0 && (
-                            <div className="flex items-center gap-2 flex-wrap">
-                                <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">Colors:</span>
-                                {imageSearch.searchMeta!.colors.map((color: any, idx: number) => (
-                                    <div key={idx} className="flex items-center gap-1.5 bg-gray-50 border border-gray-200 rounded-full px-3 py-1">
-                                        <div className="w-3 h-3 rounded-full border border-gray-300" style={{ backgroundColor: color.hex }} />
-                                        <span className="text-xs text-gray-600 font-medium capitalize">{color.name}</span>
-                                        <span className="text-[10px] text-gray-400">{color.percentage}%</span>
+                    {/* Image search results */}
+                    {imageSearch.isActive && (
+                        <div className="mb-6 bg-[#faf6f0] border border-[#d4c4b0] rounded p-5">
+                            <div className="flex items-center justify-between mb-3">
+                                <div className="flex items-center gap-3">
+                                    <FiCamera className="text-[#800000]" size={18} />
+                                    <div>
+                                        <p className="font-bangla font-bold text-gray-800">
+                                            ছবি অনুযায়ী ফলাফল
+                                        </p>
+                                        <p className="text-xs text-gray-500">{imageSearch.products.length}টি পণ্য পাওয়া গেছে</p>
                                     </div>
-                                ))}
+                                </div>
+                                <button onClick={handleClearImageSearch} className="flex items-center gap-1 text-xs text-red-500 hover:bg-red-50 px-3 py-1.5 rounded-full transition-colors">
+                                    <FiX size={13} /> বাতিল
+                                </button>
                             </div>
-                        )}
-                    </div>
-                )}
+                            {(imageSearch.searchMeta?.colors?.length ?? 0) > 0 && (
+                                <div className="flex items-center gap-2 flex-wrap">
+                                    {imageSearch.searchMeta!.colors.map((c: any, i: number) => (
+                                        <div key={i} className="flex items-center gap-1.5 bg-white border border-gray-200 rounded-full px-3 py-1">
+                                            <div className="w-3 h-3 rounded-full border border-gray-200" style={{ background: c.hex }} />
+                                            <span className="text-xs text-gray-600">{c.name}</span>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+                    )}
 
-                {/* ── Image Search Loading State ── */}
-                {imageSearch.isSearching && (
-                    <div className="mb-6 bg-white border border-gray-200 rounded-xl p-8 text-center shadow-sm animate-fadeIn">
-                        <div className="w-12 h-12 border-4 border-[var(--color-primary)]/20 border-t-[var(--color-primary)] rounded-full animate-spin mx-auto mb-4" />
-                        <h3 className="text-lg font-bold text-gray-800 mb-1">Analyzing your image...</h3>
-                        <p className="text-sm text-gray-500">Using AI to identify products and colors</p>
-                    </div>
-                )}
-
-                {/* ── Text Search Results Banner ── */}
-                {searchTerm && !imageSearch.isActive && (
-                    <div className="mb-6 bg-white border border-gray-200 rounded-xl p-5 shadow-sm animate-fadeIn">
-                        <div className="flex items-center justify-between">
+                    {/* Text search */}
+                    {searchTerm && !imageSearch.isActive && (
+                        <div className="mb-6 bg-[#faf6f0] border border-[#d4c4b0] rounded p-5 flex items-center justify-between">
                             <div className="flex items-center gap-3">
-                                <div className="w-10 h-10 rounded-full bg-[var(--color-primary)]/10 flex items-center justify-center flex-shrink-0">
-                                    <FiSearch className="text-[var(--color-primary)]" size={18} />
-                                </div>
+                                <FiSearch className="text-[#800000]" size={18} />
                                 <div>
-                                    <h3 className="text-lg font-bold text-gray-800">
-                                        Search results for &quot;<span className="text-[var(--color-primary)]">{searchTerm}</span>&quot;
-                                    </h3>
-                                    <p className="text-sm text-gray-500">
-                                        Found <span className="font-bold text-[var(--color-primary)]">{meta?.total || displayProducts.length}</span> products
+                                    <p className="font-bangla font-bold text-gray-800">
+                                        &quot;<span className="text-[#800000]">{searchTerm}</span>&quot; — {meta?.total || displayProducts.length}টি পণ্য
                                     </p>
                                 </div>
                             </div>
-                            <button
-                                onClick={handleClearTextSearch}
-                                className="flex items-center gap-1.5 px-4 py-2 bg-gray-100 hover:bg-red-50 text-gray-500 hover:text-red-500 rounded-full text-sm font-semibold transition-colors"
-                            >
-                                <FiX size={14} />
-                                Clear
+                            <button onClick={handleClearTextSearch} className="text-xs text-red-500 hover:bg-red-50 px-3 py-1.5 rounded-full flex items-center gap-1">
+                                <FiX size={13} /> বাতিল
                             </button>
                         </div>
-                    </div>
-                )}
-                {/* ── Selected Category Title ── */}
-                {selectedCategory && (
-                    <div className="flex items-center justify-between mb-6">
-                        <div>
-                            <h2 className="text-2xl font-bold text-gray-800">{selectedCategoryName || 'Category'}</h2>
-                            <p className="text-sm text-gray-500 mt-1">Showing all products in this category</p>
+                    )}
+
+                    {/* Category title */}
+                    {selectedCategory && (
+                        <div className="flex items-center justify-between mb-6">
+                            <div>
+                                <h2 className="font-display text-2xl font-bold text-[#5F0000]">
+                                    {selectedCategoryName || 'পণ্য সংগ্রহ'}
+                                </h2>
+                                <p className="text-sm text-gray-500 mt-1">এই ক্যাটাগরির সব পণ্য দেখানো হচ্ছে</p>
+                            </div>
+                            <button onClick={() => handleCategoryChange('')} className="text-sm text-[#800000] hover:underline">
+                                সব পণ্য দেখুন
+                            </button>
                         </div>
-                        <button
-                            onClick={() => handleCategoryChange('')}
-                            className="mt-4 text-[var(--color-primary)] hover:underline"
-                        >
-                            View all products
-                        </button>
-                    </div>
-                )}
+                    )}
 
-
-            </div>
-
-
-
+                    {/* Product grid for search/filter results */}
+                    {displayProducts.length > 0 && (
+                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
+                            {displayProducts.map((p: any) => <NewProductCard key={p._id || p.id} product={p} />)}
+                        </div>
+                    )}
+                </div>
+            )}
 
 
             {/* CTA Banner */}

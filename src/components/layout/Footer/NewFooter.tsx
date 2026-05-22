@@ -5,16 +5,44 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAppSelector, useAppDispatch } from '@/redux';
 import { logout } from '@/redux/slices/authSlice';
-import { FiMapPin, FiMail, FiPhone } from 'react-icons/fi';
-import { FaFacebookF, FaLinkedinIn, FaYoutube, FaInstagram } from 'react-icons/fa';
+import { FiPhone, FiMapPin } from 'react-icons/fi';
+import { FaFacebookF, FaYoutube, FaInstagram, FaWhatsapp } from 'react-icons/fa';
 import { toast } from 'react-hot-toast';
-import { useTheme } from '@/components/shared/ThemeProvider';
+
+const NAV_LINKS = [
+    { label: 'হোম',              href: '/' },
+    { label: 'সব পণ্য',          href: '/products' },
+    { label: 'জামদানি',         href: '/jamdani' },
+    { label: 'আমাদের সম্পর্কে', href: '/about' },
+    { label: 'যোগাযোগ',         href: '/contact' },
+];
+
+const POLICIES = [
+    { label: 'শর্তাবলী',         href: '/terms' },
+    { label: 'গোপনীয়তা নীতি',   href: '/privacy' },
+    { label: 'রিফান্ড নীতি',     href: '/refund' },
+];
+
+const SOCIALS = [
+    { icon: FaFacebookF,  url: '#', label: 'Facebook'  },
+    { icon: FaInstagram,  url: '#', label: 'Instagram' },
+    { icon: FaYoutube,    url: '#', label: 'YouTube'   },
+    { icon: FaWhatsapp,   url: '#', label: 'WhatsApp'  },
+];
+
+const PAYMENTS = [
+    { label: 'bKash',  color: '#D12053' },
+    { label: 'Nagad',  color: '#F6921E' },
+    { label: 'Rocket', color: '#8B2F8B' },
+    { label: 'VISA',   color: '#1A1F71' },
+    { label: 'AMEX',   color: '#006FCF' },
+    { label: 'Cash',   color: '#374151' },
+];
 
 const NewFooter: React.FC = () => {
     const { isAuthenticated, user } = useAppSelector((state) => state.auth);
     const dispatch = useAppDispatch();
-    const router = useRouter();
-    const { logoUrl } = useTheme();
+    const router   = useRouter();
 
     const handleLogout = () => {
         dispatch(logout());
@@ -25,142 +53,108 @@ const NewFooter: React.FC = () => {
 
     return (
         <footer className="bg-[#E3DEDB] border-t border-gray-300">
-            {/* ── Top Footer ── */}
-            <div className="container mx-auto px-4 py-10">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
 
-                    {/* Column 1 - Customer Services */}
+            {/* ── Top ── */}
+            <div className="container mx-auto px-4 py-10">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+
+                    {/* Brand */}
+                    <div className="lg:col-span-1">
+                        <div className="flex items-center gap-2 mb-4">
+                            <div className="w-9 h-9 rounded-lg bg-[var(--color-primary)] text-white font-black flex items-center justify-center text-sm">
+                                জ
+                            </div>
+                            <span className="text-xl font-extrabold tracking-tight text-gray-900">Jhamdani</span>
+                        </div>
+                        <p className="font-bangla text-sm text-gray-600 leading-relaxed mb-4">
+                            বাংলাদেশের সেরা জামদানি শাড়ি, ঐতিহ্যবাহী পোশাক ও অলংকার — ঐতিহ্য ও ভালোবাসায় তৈরি।
+                        </p>
+                        <div className="flex items-start gap-2 mb-4">
+                            <FiMapPin size={14} className="text-gray-500 mt-0.5 shrink-0" />
+                            <p className="font-bangla text-xs text-gray-600">ঢাকা, বাংলাদেশ</p>
+                        </div>
+                        {/* Social icons */}
+                        <div className="flex items-center gap-2">
+                            {SOCIALS.map(({ icon: Icon, url, label }) => (
+                                <a key={label} href={url} aria-label={label}
+                                   className="w-8 h-8 bg-gray-900 rounded-full flex items-center justify-center text-white hover:bg-[var(--color-primary)] transition-colors">
+                                    <Icon size={13} />
+                                </a>
+                            ))}
+                        </div>
+                    </div>
+
+                    {/* Quick Links */}
                     <div>
-                        <h4 className="text-sm font-bold text-gray-900 mb-4 uppercase tracking-wide">Customer Services</h4>
+                        <h4 className="font-bangla text-xs font-bold text-gray-900 mb-4 uppercase tracking-widest">দ্রুত লিংক</h4>
                         <ul className="space-y-2.5">
-                            <li><Link href="/contact" className="text-sm text-gray-700 hover:text-[var(--color-primary)] transition-colors">Contact Us</Link></li>
-                            <li><Link href="/contact" className="text-sm text-gray-700 hover:text-[var(--color-primary)] transition-colors">Live Chat</Link></li>
+                            {NAV_LINKS.map(({ label, href }) => (
+                                <li key={href}>
+                                    <Link href={href} className="text-sm text-gray-600 hover:text-[var(--color-primary)] transition-colors">
+                                        {label}
+                                    </Link>
+                                </li>
+                            ))}
+                        </ul>
+                    </div>
+
+                    {/* Customer Services */}
+                    <div>
+                        <h4 className="font-bangla text-xs font-bold text-gray-900 mb-4 uppercase tracking-widest">গ্রাহক সেবা</h4>
+                        <ul className="space-y-2.5">
+                            <li><Link href="/contact" className="font-bangla text-sm text-gray-600 hover:text-[var(--color-primary)] transition-colors">যোগাযোগ করুন</Link></li>
+                            <li><Link href="/cart" className="font-bangla text-sm text-gray-600 hover:text-[var(--color-primary)] transition-colors">আমার কার্ট</Link></li>
                             {isAuthenticated ? (
                                 <>
-                                    <li><Link href={user?.role === 'admin' ? '/dashboard/admin' : '/dashboard/user'} className="text-sm text-gray-700 hover:text-[var(--color-primary)] transition-colors">My Account</Link></li>
-                                    <li><button onClick={handleLogout} className="text-sm text-gray-700 hover:text-red-500 transition-colors">Logout</button></li>
+                                    <li><Link href={user?.role === 'admin' ? '/dashboard/admin' : '/dashboard/user'} className="font-bangla text-sm text-gray-600 hover:text-[var(--color-primary)] transition-colors">আমার অ্যাকাউন্ট</Link></li>
+                                    <li><Link href="/dashboard/user/orders" className="font-bangla text-sm text-gray-600 hover:text-[var(--color-primary)] transition-colors">আমার অর্ডার</Link></li>
+                                    <li><button onClick={handleLogout} className="font-bangla text-sm text-gray-600 hover:text-red-500 transition-colors">লগআউট</button></li>
                                 </>
                             ) : (
-                                <li><Link href="/login" className="text-sm text-gray-700 hover:text-[var(--color-primary)] transition-colors">Sign In / Register</Link></li>
+                                <>
+                                    <li><Link href="/login" className="font-bangla text-sm text-gray-600 hover:text-[var(--color-primary)] transition-colors">সাইন ইন</Link></li>
+                                    <li><Link href="/register" className="font-bangla text-sm text-gray-600 hover:text-[var(--color-primary)] transition-colors">নিবন্ধন করুন</Link></li>
+                                </>
                             )}
                         </ul>
                     </div>
 
-                    {/* Column 2 - Our Expertise */}
+                    {/* Contact + Payment */}
                     <div>
-                        <h4 className="text-sm font-bold text-gray-900 mb-4 uppercase tracking-wide">Our Expertise</h4>
-                        <ul className="space-y-2.5">
-                            <li><Link href="/services/shipping" className="text-sm text-gray-700 hover:text-[var(--color-primary)] transition-colors">Buy and Ship for Me</Link></li>
-                            <li><Link href="/services/shipping" className="text-sm text-gray-700 hover:text-[var(--color-primary)] transition-colors">Ship for Me</Link></li>
-                            <li><Link href="/services/quotation" className="text-sm text-gray-700 hover:text-[var(--color-primary)] transition-colors">Request for Quotation (RFQ)</Link></li>
-                            <li><Link href="/services/calculator" className="text-sm text-gray-700 hover:text-[var(--color-primary)] transition-colors">Cost Calculator</Link></li>
-                        </ul>
-                    </div>
-
-                    {/* Column 3 - Important Links */}
-                    <div>
-                        <h4 className="text-sm font-bold text-gray-900 mb-4 uppercase tracking-wide">Important Links</h4>
-                        <ul className="space-y-2.5">
-                            <li><Link href="/" className="text-sm text-gray-700 hover:text-[var(--color-primary)] transition-colors">Chutli Live</Link></li>
-                            <li><Link href="/contact" className="text-sm text-gray-700 hover:text-[var(--color-primary)] transition-colors">Talk to the Expert</Link></li>
-                            <li><Link href="/blogs" className="text-sm text-gray-700 hover:text-[var(--color-primary)] transition-colors">Blog</Link></li>
-                            <li><Link href="/cart" className="text-sm text-gray-700 hover:text-[var(--color-primary)] transition-colors">My Cart</Link></li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
-
-            {/* ── Middle Footer ── */}
-            <div className="border-t border-gray-300">
-                <div className="container mx-auto px-4 py-8">
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-
-                        {/* Logo + Address */}
-                        <div>
-                            <Link href="/" className="flex items-center gap-2 mb-4">
-                                <img src={logoUrl || '/images/chutli.png'} alt="Chutli" className="h-8" />
-                            </Link>
-                            <div className="space-y-2.5">
-                                <div className="flex items-start gap-2.5">
-                                    <FiMapPin size={14} className="text-gray-600 mt-0.5 shrink-0" />
-                                    <p className="text-sm text-gray-700">Plot 1020, Road 9, Avenue 9, Mirpur DOHS, Dhaka 1216</p>
-                                </div>
-                            </div>
-                            {/* Social Icons */}
-                            <div className="flex items-center gap-3 mt-4">
-                                {[
-                                    { icon: FaFacebookF, url: '#', label: 'Facebook' },
-                                    { icon: FaLinkedinIn, url: '#', label: 'LinkedIn' },
-                                    { icon: FaYoutube, url: '#', label: 'YouTube' },
-                                    { icon: FaInstagram, url: '#', label: 'Instagram' },
-                                ].map((s) => (
-                                    <a key={s.label} href={s.url} aria-label={s.label} className="w-8 h-8 bg-gray-900 rounded-full flex items-center justify-center text-white hover:bg-[var(--color-primary)] transition-colors">
-                                        <s.icon size={14} />
-                                    </a>
-                                ))}
-                            </div>
+                        <h4 className="font-bangla text-xs font-bold text-gray-900 mb-4 uppercase tracking-widest">যোগাযোগ করুন</h4>
+                        <div className="flex items-center gap-2 mb-3">
+                            <FiPhone size={14} className="text-[var(--color-primary)] shrink-0" />
+                            <a href="tel:+8801700000000" className="text-sm font-semibold text-[var(--color-primary)] hover:underline">+880 1700-000000</a>
                         </div>
+                        <p className="font-bangla text-xs text-gray-500 mb-5">রবি – বৃহস্পতি&nbsp;|&nbsp; সকাল ৯টা – সন্ধ্যা ৬টা</p>
 
-                        {/* 24/7 Support */}
-                        <div>
-                            <h4 className="text-sm font-bold text-gray-900 mb-4">24/7 Support</h4>
-                            <p className="text-sm text-gray-700 mb-3">We're here for you 24/7, around the clock.</p>
-                            <div className="flex items-center gap-2.5">
-                                <FiPhone size={16} className="text-[var(--color-primary)]" />
-                                <a href="tel:+8809666786000" className="text-base font-semibold text-[var(--color-primary)] hover:underline">+8809666786000</a>
-                            </div>
-                        </div>
-
-                        {/* Payment Methods */}
-                        <div>
-                            <h4 className="text-sm font-bold text-gray-900 mb-4">Payment Method We Accept</h4>
-                            <div className="grid grid-cols-4 gap-2">
-                                <div className="bg-white border border-gray-200 rounded-md px-3 py-2 flex items-center justify-center h-10">
-                                    <span className="text-sm font-bold tracking-tight" style={{ color: '#1A1F71' }}>VISA</span>
+                        <h4 className="font-bangla text-xs font-bold text-gray-900 mb-3 uppercase tracking-widest">পেমেন্ট পদ্ধতি</h4>
+                        <div className="flex flex-wrap gap-2">
+                            {PAYMENTS.map(({ label, color }) => (
+                                <div key={label}
+                                     className="bg-white border border-gray-200 rounded px-2.5 py-1 flex items-center justify-center h-8">
+                                    <span className="text-[11px] font-bold" style={{ color }}>{label}</span>
                                 </div>
-                                <div className="bg-white border border-gray-200 rounded-md px-3 py-2 flex items-center justify-center h-10">
-                                    <div className="flex items-center gap-0.5">
-                                        <div className="w-4 h-4 rounded-full bg-[#EB001B] opacity-80" />
-                                        <div className="w-4 h-4 rounded-full bg-[#F79E1B] opacity-80 -ml-2" />
-                                    </div>
-                                </div>
-                                <div className="bg-white border border-gray-200 rounded-md px-3 py-2 flex items-center justify-center h-10">
-                                    <span className="text-[10px] font-bold text-[#006FCF]">AMEX</span>
-                                </div>
-                                <div className="bg-white border border-gray-200 rounded-md px-3 py-2 flex items-center justify-center h-10">
-                                    <span className="text-[11px] font-bold" style={{ color: '#D12053' }}>bKash</span>
-                                </div>
-                                <div className="bg-white border border-gray-200 rounded-md px-3 py-2 flex items-center justify-center h-10">
-                                    <span className="text-[11px] font-bold" style={{ color: '#F6921E' }}>Nagad</span>
-                                </div>
-                                <div className="bg-white border border-gray-200 rounded-md px-3 py-2 flex items-center justify-center h-10">
-                                    <span className="text-[11px] font-bold" style={{ color: '#8B2F8B' }}>Rocket</span>
-                                </div>
-                                <div className="bg-white border border-gray-200 rounded-md px-3 py-2 flex items-center justify-center h-10">
-                                    <span className="text-[10px] font-bold" style={{ color: '#00529B' }}>DBBL</span>
-                                </div>
-                                <div className="bg-white border border-gray-200 rounded-md px-3 py-2 flex items-center justify-center h-10">
-                                    <span className="text-[9px] font-bold" style={{ color: '#003087' }}>City Bank</span>
-                                </div>
-                            </div>
+                            ))}
                         </div>
                     </div>
                 </div>
             </div>
 
-            {/* ── Bottom Footer ── */}
+            {/* ── Bottom ── */}
             <div className="border-t border-gray-300">
                 <div className="container mx-auto px-4 py-4">
-                    <div className="flex flex-col md:flex-row items-center justify-between gap-2">
-                        <p className="text-xs text-gray-700">
-                            © 2019-{new Date().getFullYear()} Chutli Technologies Ltd. All Rights Reserved.
+                    <div className="flex flex-col sm:flex-row items-center justify-between gap-2">
+                        <p className="font-bangla text-xs text-gray-500">
+                            © {new Date().getFullYear()} ঝামদানি। সর্বস্বত্ব সংরক্ষিত।
                         </p>
-                        <div className="flex items-center gap-4">
-                            <Link href="/terms" className="text-xs text-gray-700 hover:text-[var(--color-primary)] transition-colors">Terms & Conditions</Link>
-                            <span className="text-gray-500">•</span>
-                            <Link href="/privacy" className="text-xs text-gray-700 hover:text-[var(--color-primary)] transition-colors">Privacy Policy</Link>
-                            <span className="text-gray-500">•</span>
-                            <Link href="/refund" className="text-xs text-gray-700 hover:text-[var(--color-primary)] transition-colors">Refund Policy</Link>
+                        <div className="flex items-center gap-3 flex-wrap justify-center">
+                            {POLICIES.map(({ label, href }, i) => (
+                                <React.Fragment key={href}>
+                                    {i > 0 && <span className="text-gray-400 text-xs">•</span>}
+                                    <Link href={href} className="text-xs text-gray-500 hover:text-[var(--color-primary)] transition-colors">{label}</Link>
+                                </React.Fragment>
+                            ))}
                         </div>
                     </div>
                 </div>
