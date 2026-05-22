@@ -7,10 +7,11 @@
   font-family: 'Poppins', 'Hind Siliguri', sans-serif;
 }
 
-/* Elegant Bengali display (headings, hero, section titles) */
+/* Elegant Bengali display (headings, hero, section titles) — Galada for artistic calligraphic feel */
 .font-display,
 .bn-display {
-  font-family: 'Noto Serif Bengali', 'Tiro Bangla', Georgia, serif;
+  font-family: 'Galada', 'Noto Serif Bengali', 'Tiro Bangla', Georgia, serif;
+  font-weight: 400 !important;
 }
 
 /* Clean Bengali body */
@@ -76,7 +77,7 @@
 
   /* Typography */
   --font-family: 'Poppins', sans-serif;
-  --font-heading: 'Noto Serif Bengali', 'Tiro Bangla', serif;
+  --font-heading: 'Galada', 'Noto Serif Bengali', 'Tiro Bangla', serif;
   --font-size-xs: 0.75rem;
   --font-size-sm: 0.875rem;
   --font-size-base: 1rem;
@@ -153,7 +154,7 @@ h6 {
 /* ===== Container ===== */
 .container {
   width: 100%;
-  max-width: 1500px;
+  max-width: 1320px;
   margin-left: auto;
   margin-right: auto;
   padding-left: 1rem;

@@ -6,7 +6,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 
 const slides = [
     {
-        image: '/hero-jamdani.png',
+        image: '/hh.png',
         tag: 'জামদানির ঐতিহ্য',
         heading: 'শিল্পের ছোঁয়ায়\nতৈরি জামদানি',
         sub: 'প্রতিটি সুতোয় মিশে আছে\nবাংলার হাজার বছরের গর্ব।',
