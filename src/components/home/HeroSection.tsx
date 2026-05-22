@@ -51,7 +51,7 @@ const HeroSection: React.FC = () => {
                     initial={{ opacity: 0, scale: 1.06 }}
                     animate={{ opacity: 1, scale: 1 }}
                     exit={{ opacity: 0, scale: 0.97 }}
-                    transition={{ duration: 1.3, ease: 'easeInOut' }}
+                    transition={{ duration: 1.3, ease: 'easeInOut' as const }}
                     className="absolute inset-0"
                 >
                     <img
