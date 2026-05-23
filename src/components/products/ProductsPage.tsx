@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, Suspense } from 'react';
 import Link from 'next/link';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { useGetProductsQuery } from '@/redux/api/productApi';
@@ -347,7 +347,7 @@ function SkeletonCard() {
 }
 
 // ── Main Component ──────────────────────────────────────────────
-const ProductsPage: React.FC = () => {
+const ProductsPageInner: React.FC = () => {
     const router = useRouter();
     const searchParams = useSearchParams();
     const dispatch = useAppDispatch();
@@ -697,5 +697,19 @@ const ProductsPage: React.FC = () => {
         </div>
     );
 };
+
+const ProductsPage: React.FC = () => (
+    <Suspense fallback={
+        <div className="min-h-screen" style={{ background: '#F5F0EB' }}>
+            <div className="container mx-auto px-4 py-6">
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 xl:grid-cols-4 gap-4">
+                    {[...Array(12)].map((_, i) => <SkeletonCard key={i} />)}
+                </div>
+            </div>
+        </div>
+    }>
+        <ProductsPageInner />
+    </Suspense>
+);
 
 export default ProductsPage;

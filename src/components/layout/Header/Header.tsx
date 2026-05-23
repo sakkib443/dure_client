@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useRef, useCallback, useEffect } from 'react';
+import React, { useState, useRef, useCallback, useEffect, Suspense } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import {
@@ -133,7 +133,7 @@ function BanglaLogo({ small, light }: { small?: boolean; light?: boolean }) {
 /* ═══════════════════════════════════════════════════════════════════ */
 /*                          MAIN HEADER                              */
 /* ═══════════════════════════════════════════════════════════════════ */
-const Header: React.FC = () => {
+const HeaderInner: React.FC = () => {
     const pathname = usePathname();
     const router   = useRouter();
     const searchParams = useSearchParams();   // reactive → re-renders on query change
@@ -592,5 +592,11 @@ const Header: React.FC = () => {
         </>
     );
 };
+
+const Header: React.FC = () => (
+    <Suspense fallback={null}>
+        <HeaderInner />
+    </Suspense>
+);
 
 export default Header;

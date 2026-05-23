@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import NewProductCard from '@/components/shared/NewProductCard';
@@ -19,7 +19,7 @@ import CtaBanner from './CtaBanner';
 
 const LIMIT = 20;
 
-const NewHomePage: React.FC = () => {
+const NewHomePageInner: React.FC = () => {
     const searchParams = useSearchParams();
     const dispatch = useAppDispatch();
 
@@ -325,5 +325,27 @@ const NewHomePage: React.FC = () => {
         </div>
     );
 };
+
+const NewHomePage: React.FC = () => (
+    <Suspense fallback={
+        <div className="min-h-screen bg-[var(--color-background)]">
+            <div className="w-[95%] mx-auto py-6">
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2">
+                    {[...Array(10)].map((_, i) => (
+                        <div key={i} className="bg-[#dcd7c8]/40 border border-[#c1bcae]/40 rounded-md overflow-hidden animate-pulse">
+                            <div className="aspect-square bg-gray-200" />
+                            <div className="p-4 space-y-2">
+                                <div className="h-4 bg-gray-200 rounded w-3/4" />
+                                <div className="h-3 bg-gray-200 rounded w-1/2" />
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            </div>
+        </div>
+    }>
+        <NewHomePageInner />
+    </Suspense>
+);
 
 export default NewHomePage;
