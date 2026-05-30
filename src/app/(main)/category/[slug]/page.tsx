@@ -1,657 +1,261 @@
 "use client";
 
-import React, { useState, useEffect, useMemo } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import React, { useState, useMemo } from 'react';
+import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { useGetCategoriesQuery } from '@/redux/api/categoryApi';
 import { useGetProductsQuery } from '@/redux/api/productApi';
 import ShopCard from '@/components/shared/ShopCard';
-import Loader from '@/components/shared/Loader';
-import {
-    FiChevronRight,
-    FiChevronDown,
-    FiFilter,
-    FiX,
-    FiSliders,
-    FiGrid,
-    FiAlertCircle,
-    FiHome
-} from 'react-icons/fi';
+import { FiChevronRight, FiChevronDown, FiGrid } from 'react-icons/fi';
 
-const LIMIT = 12;
+const LIMIT = 40;
 
-const SORT_OPTIONS = [
-    { label: 'Newest First', value: '-createdAt' },
-    { label: 'Price: Low to High', value: 'price' },
-    { label: 'Price: High to Low', value: '-price' },
-    { label: 'Most Popular', value: '-totalSold' },
-    { label: 'Top Rated', value: '-rating' },
+const HIGHLIGHTS = [
+    { emoji: '🧶', title: 'হাতে তৈরি',       desc: 'দক্ষ কারিগরদের নিপুণ হাতে যত্নসহকারে তৈরি' },
+    { emoji: '🌿', title: 'সেরা উপকরণ',      desc: 'মানসম্পন্ন ও টেকসই উপাদানের নিশ্চয়তা' },
+    { emoji: '🏆', title: 'ঐতিহ্যবাহী',      desc: 'বাংলার সমৃদ্ধ ঐতিহ্যের ছোঁয়া প্রতিটি পণ্যে' },
+    { emoji: '🚚', title: 'নিরাপদ ডেলিভারি', desc: 'যত্নসহকারে প্যাকিং করে দ্রুত পৌঁছে দেওয়া' },
 ];
 
 export default function CategoryPage() {
     const { slug } = useParams();
-    const router = useRouter();
     const currentSlug = slug as string;
 
-    // States for sorting, filtering, pagination
-    const [sortBy, setSortBy] = useState('-createdAt');
-    const [showSortDropdown, setShowSortDropdown] = useState(false);
-    const [showMobileFilter, setShowMobileFilter] = useState(false);
-    const [page, setPage] = useState(1);
-    
-    // Price range filters
-    const [priceRange, setPriceRange] = useState({ min: '', max: '' });
-    const [sliderMax, setSliderMax] = useState(10000);
-    const [tempPriceRange, setTempPriceRange] = useState({ min: 0, max: 10000 });
+    const [showCatDropdown, setShowCatDropdown] = useState(false);
 
-    // Fetch all categories
-    const { data: categoriesData, isLoading: categoriesLoading } = useGetCategoriesQuery({});
-    const categories = useMemo(() => categoriesData?.data || categoriesData?.categories || [], [categoriesData]);
+    const { data: catData } = useGetCategoriesQuery({});
+    const categories: any[] = useMemo(
+        () => catData?.data || catData?.categories || [],
+        [catData]
+    );
 
-    // Active Category lookup
-    const activeCategory = useMemo(() => {
-        return categories.find((cat: any) => cat.slug === currentSlug);
-    }, [categories, currentSlug]);
+    const activeCategory = useMemo(
+        () => categories.find((c: any) => c.slug === currentSlug),
+        [categories, currentSlug]
+    );
 
-    // Track active expansion paths for category tree
-    const [expandedCategories, setExpandedCategories] = useState<Record<string, boolean>>({});
-
-    // Ancestry / Breadcrumbs helper
+    // Walk up to the ancestry path (root → … → active) for breadcrumbs.
     const breadcrumbs = useMemo(() => {
         if (!activeCategory || categories.length === 0) return [];
         const path = [activeCategory];
         let current = activeCategory;
-        
-        while (current.parent) {
+        while (current?.parent) {
             const parentId = typeof current.parent === 'object' ? current.parent._id : current.parent;
             const parent = categories.find((c: any) => c._id === parentId);
-            if (parent) {
-                path.unshift(parent);
-                current = parent;
-            } else {
-                break;
-            }
+            if (!parent) break;
+            path.unshift(parent);
+            current = parent;
         }
         return path;
     }, [activeCategory, categories]);
 
-    // Build hierarchical category tree from flat categories array
-    const categoryTree = useMemo(() => {
-        if (categories.length === 0) return [];
-        
-        const map: Record<string, any> = {};
-        const roots: any[] = [];
+    // The top-level section this category belongs to. The dropdown only ever
+    // shows this root + its subcategories — never sibling roots (e.g. while in
+    // জামদানি you never see জামা / অলংকার).
+    const rootCategory = breadcrumbs[0] || activeCategory;
 
-        // Initialize map
-        categories.forEach((cat: any) => {
-            map[cat._id] = { ...cat, children: [] };
-        });
-
-        // Link parents and children
-        categories.forEach((cat: any) => {
-            const parentId = cat.parent && typeof cat.parent === 'object' ? cat.parent._id : cat.parent;
-            if (parentId && map[parentId]) {
-                map[parentId].children.push(map[cat._id]);
-            } else if (!parentId || !map[parentId]) {
-                // If it doesn't have parent or parent doesn't exist in active cats, it is a root
-                roots.push(map[cat._id]);
-            }
-        });
-
-        // Sort roots and children by order
-        const sortNodes = (nodes: any[]) => {
-            nodes.sort((a, b) => (a.order || 0) - (b.order || 0));
-            nodes.forEach(n => {
-                if (n.children.length > 0) {
-                    sortNodes(n.children);
-                }
-            });
+    const dropdownRoot = useMemo(() => {
+        if (!rootCategory) return null;
+        return {
+            ...rootCategory,
+            children: categories.filter((c: any) => {
+                const parentId = typeof c.parent === 'object' ? c.parent?._id : c.parent;
+                return String(parentId) === String(rootCategory._id);
+            }),
         };
-        sortNodes(roots);
+    }, [categories, rootCategory]);
 
-        return roots;
-    }, [categories]);
+    const { data: productsData, isLoading } = useGetProductsQuery(
+        { category: currentSlug, limit: LIMIT, sort: '-createdAt' },
+        { skip: !currentSlug }
+    );
+    const products: any[] = productsData?.data || [];
 
-    // Auto-expand paths leading to current active category
-    useEffect(() => {
-        if (breadcrumbs.length > 0) {
-            const newExpands: Record<string, boolean> = { ...expandedCategories };
-            breadcrumbs.forEach((bc: any) => {
-                newExpands[bc._id] = true;
-            });
-            setExpandedCategories(newExpands);
-        }
-    }, [breadcrumbs]);
+    const normalised = useMemo(
+        () => products.map((p: any) => ({
+            id:            p._id,
+            _id:           p._id,
+            slug:          p.slug,
+            name:          p.name,
+            image:         p.thumbnail,
+            price:         p.price,
+            originalPrice: p.originalPrice,
+            discount:      p.discount,
+            rating:        p.rating,
+            reviews:       p.reviewCount,
+            priceType:     p.priceType,
+            totalSold:     p.totalSold,
+            categoryName:  p.category?.name,
+        })),
+        [products]
+    );
 
-    // Query parameters for products
-    const queryParams = useMemo(() => {
-        const params: any = {
-            category: currentSlug,
-            page,
-            limit: LIMIT,
-            sort: sortBy
-        };
-        if (priceRange.min) params.minPrice = priceRange.min;
-        if (priceRange.max) params.maxPrice = priceRange.max;
-        return params;
-    }, [currentSlug, page, sortBy, priceRange]);
-
-    // Fetch products
-    const { data: productsData, isFetching: productsFetching, isLoading: productsLoading } = useGetProductsQuery(queryParams);
-    const products = useMemo(() => productsData?.data || [], [productsData]);
-    const meta = useMemo(() => productsData?.meta || { total: 0, totalPage: 1 }, [productsData]);
-
-    // Dynamic price calculation from products if needed, but static default range 0 - 25000 BDT is premium
-    useEffect(() => {
-        if (products.length > 0) {
-            // Find max price to set dynamic slider maximum
-            const maxVal = Math.max(...products.map((p: any) => p.price), 10000);
-            setSliderMax(Math.ceil(maxVal / 1000) * 1000);
-        }
-    }, [products]);
-
-    // Handle range slider updates
-    const handleSliderChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const val = parseInt(e.target.value, 10);
-        setTempPriceRange(prev => ({ ...prev, max: val }));
+    const heroTitle = activeCategory?.name || 'সংগ্রহ';
+    const heroDesc = activeCategory?.description
+        || 'বাংলার সমৃদ্ধ ঐতিহ্য থেকে দক্ষ কারিগরদের হাতে তৈরি সেরা পণ্যের সংগ্রহ আবিষ্কার করুন।';
+    const CATEGORY_HERO_IMAGES: Record<string, string> = {
+        jamdani:   'https://images.unsplash.com/photo-1610030469983-98e550d6193c?w=1600&q=80',
+        ornaments: 'https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?w=1600&q=80',
+        jama:      'https://images.unsplash.com/photo-1490481651871-ab68de25d43d?w=1600&q=80',
     };
-
-    const applyPriceFilter = () => {
-        setPriceRange({
-            min: String(tempPriceRange.min),
-            max: String(tempPriceRange.max)
-        });
-        setPage(1);
-        setShowMobileFilter(false);
-    };
-
-    const clearPriceFilter = () => {
-        setTempPriceRange({ min: 0, max: sliderMax });
-        setPriceRange({ min: '', max: '' });
-        setPage(1);
-    };
-
-    const toggleExpand = (catId: string, e: React.MouseEvent) => {
-        e.stopPropagation();
-        e.preventDefault();
-        setExpandedCategories(prev => ({
-            ...prev,
-            [catId]: !prev[catId]
-        }));
-    };
-
-    // Helper to render category node recursively
-    const renderCategoryNode = (node: any, depth = 0) => {
-        const hasChildren = node.children && node.children.length > 0;
-        const isExpanded = expandedCategories[node._id];
-        const isActive = node.slug === currentSlug;
-        const isActiveParent = breadcrumbs.some(bc => bc._id === node._id);
-
-        return (
-            <div key={node._id} className="select-none">
-                <div 
-                    className={`flex items-center justify-between py-1.5 px-2 rounded-md transition-all duration-200 cursor-pointer ${
-                        isActive 
-                            ? 'bg-[var(--color-primary-light)] text-[var(--color-primary)] font-semibold border-l-4 border-[var(--color-primary)]' 
-                            : isActiveParent
-                            ? 'text-[var(--color-primary)] font-medium'
-                            : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
-                    }`}
-                    style={{ paddingLeft: `${Math.max(8, depth * 14)}px` }}
-                    onClick={() => {
-                        router.push(`/category/${node.slug}`);
-                        setPage(1);
-                    }}
-                >
-                    <span className="text-sm truncate flex-1">{node.name}</span>
-                    {hasChildren && (
-                        <button 
-                            onClick={(e) => toggleExpand(node._id, e)}
-                            className="p-1 text-gray-400 hover:text-[var(--color-primary)] transition-colors rounded hover:bg-gray-200/50"
-                        >
-                            {isExpanded ? <FiChevronDown size={16} /> : <FiChevronRight size={16} />}
-                        </button>
-                    )}
-                </div>
-
-                {hasChildren && isExpanded && (
-                    <div className="mt-1 space-y-0.5 border-l border-dashed border-gray-200 ml-3">
-                        {node.children.map((child: any) => renderCategoryNode(child, depth + 1))}
-                    </div>
-                )}
-            </div>
-        );
-    };
-
-    // Breadcrumb and Banner visuals
-    const bannerUrl = activeCategory?.banner || 'https://images.unsplash.com/photo-1601924994987-69e26d50dc26?w=1600&q=80';
-    const activeCategoryName = activeCategory?.name || 'Category';
-    const activeCategoryDescription = activeCategory?.description || 'Browse our premium handcrafted collection';
+    const heroImage = activeCategory?.banner || activeCategory?.image
+        || CATEGORY_HERO_IMAGES[rootCategory?.slug ?? '']
+        || 'https://images.unsplash.com/photo-1601924994987-69e26d50dc26?w=1600&q=80';
 
     return (
-        <div className="min-h-screen bg-gray-50/50 pb-16">
-            
-            {/* Banner Section */}
-            <div className="relative h-64 md:h-72 w-full overflow-hidden bg-gray-900">
-                <img 
-                    src={bannerUrl} 
-                    alt={activeCategoryName} 
-                    className="h-full w-full object-cover object-center opacity-40 scale-105 transition-transform duration-700 ease-out hover:scale-100"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-black/20" />
-                <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-6 mt-8">
-                    <h1 className="text-3xl md:text-5xl font-extrabold text-white tracking-wide uppercase drop-shadow-md mb-2 font-serif">
-                        {activeCategoryName}
-                    </h1>
-                    <p className="text-gray-200 text-sm md:text-base max-w-xl line-clamp-2 font-light drop-shadow">
-                        {activeCategoryDescription}
-                    </p>
-                </div>
-            </div>
+        <div className="min-h-screen" style={{ background: '#F5EDE0' }}>
 
-            {/* Breadcrumbs Row */}
-            <div className="bg-white border-b border-gray-200/80 shadow-sm sticky top-0 z-20">
-                <div className="container mx-auto px-4 py-3 flex items-center justify-between">
-                    
-                    {/* Breadcrumbs */}
-                    <div className="flex items-center gap-1.5 text-xs md:text-sm text-gray-500 overflow-x-auto whitespace-nowrap scrollbar-thin">
-                        <Link href="/" className="hover:text-[var(--color-primary)] flex items-center gap-1">
-                            <FiHome size={14} />
-                            <span>Home</span>
-                        </Link>
+            {/* ══ HERO ══ */}
+            <section className="relative overflow-hidden" style={{ padding: '44px 0 40px' }}>
+                <img src={heroImage} alt={heroTitle} className="absolute inset-0 w-full h-full object-cover" />
+                <div className="absolute inset-0" style={{ background: 'linear-gradient(to bottom, rgba(45,16,8,0.80), rgba(45,16,8,0.92))' }} />
+                <div className="container mx-auto px-4 text-center relative z-10">
+                    <div className="flex items-center justify-center gap-1.5 mb-5 flex-wrap">
+                        <Link href="/" className="font-bangla text-xs" style={{ color: '#C9A22780' }}>হোম</Link>
                         {breadcrumbs.map((bc: any, idx: number) => {
                             const isLast = idx === breadcrumbs.length - 1;
                             return (
                                 <React.Fragment key={bc._id}>
-                                    <FiChevronRight size={12} className="text-gray-400 shrink-0" />
+                                    <FiChevronRight size={11} style={{ color: '#C9A22760' }} />
                                     {isLast ? (
-                                        <span className="text-[var(--color-primary)] font-semibold shrink-0">
-                                            {bc.name}
-                                        </span>
+                                        <span className="font-bangla text-xs" style={{ color: '#C9A227CC' }}>{bc.name}</span>
                                     ) : (
-                                        <Link href={`/category/${bc.slug}`} className="hover:text-[var(--color-primary)] shrink-0">
-                                            {bc.name}
-                                        </Link>
+                                        <Link href={`/category/${bc.slug}`} className="font-bangla text-xs" style={{ color: '#C9A22780' }}>{bc.name}</Link>
                                     )}
                                 </React.Fragment>
                             );
                         })}
                     </div>
+                    <span className="font-bangla inline-block text-xs font-bold px-4 py-1.5 rounded-full mb-4 uppercase tracking-wider" style={{ background: 'rgba(201,162,39,0.15)', color: '#C9A227' }}>
+                        ঐতিহ্যের সংগ্রহ
+                    </span>
+                    <h1 className="font-display text-4xl md:text-5xl font-black mb-4 leading-tight" style={{ color: '#FDF6EC' }}>
+                        {heroTitle}
+                    </h1>
+                    <p className="font-bangla text-sm md:text-base max-w-xl mx-auto leading-relaxed" style={{ color: '#FDF6EC80' }}>
+                        {heroDesc}
+                    </p>
+                </div>
+            </section>
 
-                    {/* Product count & mobile toggle */}
-                    <div className="flex items-center gap-3">
-                        <span className="text-xs md:text-sm text-gray-400 font-medium whitespace-nowrap">
-                            {meta.total || 0} products found
-                        </span>
-                        
+            {/* ══ HIGHLIGHTS ══ */}
+            <section className="bg-jamdani-motif" style={{ borderBottom: '1px solid #e5ddd0' }}>
+                <div className="container mx-auto px-4 py-7">
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+                        {HIGHLIGHTS.map(({ emoji, title, desc }) => (
+                            <div key={title}>
+                                <span className="text-2xl block mb-1">{emoji}</span>
+                                <p className="font-bangla text-xs font-bold" style={{ color: '#2D1008' }}>{title}</p>
+                                <p className="font-bangla text-[11px] mt-0.5 leading-relaxed" style={{ color: '#8a7560' }}>{desc}</p>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            </section>
+
+            {/* ══ PRODUCTS GRID ══ */}
+            <section className="container mx-auto px-4 py-10">
+                <div className="flex items-center justify-between mb-6">
+                    <div>
+                        <h2 className="font-display text-xl font-black" style={{ color: '#2D1008' }}>
+                            {heroTitle}
+                        </h2>
+                        {!isLoading && <p className="font-bangla text-xs mt-0.5" style={{ color: '#8a7560' }}>{normalised.length}টি পণ্য পাওয়া গেছে</p>}
+                    </div>
+                    <div className="relative">
                         <button
-                            onClick={() => setShowMobileFilter(true)}
-                            className="lg:hidden flex items-center gap-1.5 text-xs md:text-sm text-gray-700 bg-gray-100 hover:bg-gray-200 border border-gray-200 rounded-lg px-3 py-1.5 font-medium transition-all"
+                            onClick={() => setShowCatDropdown(v => !v)}
+                            className="font-bangla flex items-center gap-1.5 text-sm font-semibold hover:underline transition-colors"
+                            style={{ color: '#6B0F1A' }}
                         >
-                            <FiFilter size={14} className="text-[var(--color-primary)]" />
-                            <span>Filter</span>
+                            <FiGrid size={14} /> সব ক্যাটাগরি দেখুন
+                            <FiChevronDown size={14} style={{ transform: showCatDropdown ? 'rotate(180deg)' : 'none', transition: 'transform .2s' }} />
                         </button>
-                    </div>
-                </div>
-            </div>
 
-            {/* Main Content Layout */}
-            <div className="container mx-auto px-4 py-8">
-                <div className="flex gap-8 items-start">
-
-                    {/* ── LEFT SIDEBAR FILTERS (Desktop Only) ── */}
-                    <aside className="hidden lg:block w-72 shrink-0 sticky top-16 bg-white rounded-2xl border border-gray-200/80 shadow-md p-6 overflow-y-auto max-h-[calc(100vh-6rem)]">
-                        
-                        {/* Categories Tree */}
-                        <div className="mb-8">
-                            <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wider mb-4 border-b border-gray-100 pb-2">
-                                Categories
-                            </h3>
-                            {categoriesLoading ? (
-                                <div className="space-y-2 py-2">
-                                    {[...Array(6)].map((_, i) => (
-                                        <div key={i} className="h-6 bg-gray-100 rounded-md animate-pulse w-full" />
-                                    ))}
-                                </div>
-                            ) : categoryTree.length === 0 ? (
-                                <p className="text-sm text-gray-400 italic">No categories found</p>
-                            ) : (
-                                <div className="space-y-1">
-                                    {categoryTree.map((node: any) => renderCategoryNode(node))}
-                                </div>
-                            )}
-                        </div>
-
-                        {/* Price Range Filter */}
-                        <div className="border-t border-gray-100 pt-6">
-                            <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wider mb-4 border-b border-gray-100 pb-2 flex items-center justify-between">
-                                <span>Filter by Price</span>
-                                {(priceRange.min || priceRange.max) && (
-                                    <button 
-                                        onClick={clearPriceFilter} 
-                                        className="text-xs text-red-500 hover:underline font-semibold"
-                                    >
-                                        Clear
-                                    </button>
-                                )}
-                            </h3>
-                            
-                            <div className="space-y-4">
-                                <div className="flex items-center justify-between text-xs text-gray-500 font-semibold">
-                                    <span>৳0</span>
-                                    <span>৳{tempPriceRange.max}</span>
-                                </div>
-
-                                <input
-                                    type="range"
-                                    min="0"
-                                    max={sliderMax}
-                                    step="100"
-                                    value={tempPriceRange.max}
-                                    onChange={handleSliderChange}
-                                    className="w-full h-1.5 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-[var(--color-primary)] focus:outline-none"
-                                />
-
-                                <div className="flex items-center gap-3">
-                                    <div className="flex-1">
-                                        <label className="text-[10px] text-gray-400 uppercase font-bold">Min</label>
-                                        <input
-                                            type="number"
-                                            value={tempPriceRange.min}
-                                            onChange={(e) => setTempPriceRange(p => ({ ...p, min: Number(e.target.value) }))}
-                                            className="w-full text-xs font-medium border border-gray-200 rounded-lg px-2.5 py-1.5 bg-gray-50 focus:outline-none focus:border-[var(--color-primary)]/40"
-                                        />
-                                    </div>
-                                    <div className="flex-1">
-                                        <label className="text-[10px] text-gray-400 uppercase font-bold">Max</label>
-                                        <input
-                                            type="number"
-                                            value={tempPriceRange.max}
-                                            onChange={(e) => setTempPriceRange(p => ({ ...p, max: Number(e.target.value) }))}
-                                            className="w-full text-xs font-medium border border-gray-200 rounded-lg px-2.5 py-1.5 bg-gray-50 focus:outline-none focus:border-[var(--color-primary)]/40"
-                                        />
-                                    </div>
-                                </div>
-
-                                <button
-                                    onClick={applyPriceFilter}
-                                    className="w-full text-xs font-bold py-2 bg-[var(--color-primary)] hover:bg-[var(--color-primary-dark)] text-white rounded-lg shadow-sm hover:shadow transition-all duration-200"
+                        {showCatDropdown && (
+                            <>
+                                <div className="fixed inset-0 z-40" onClick={() => setShowCatDropdown(false)} />
+                                <div
+                                    className="absolute right-0 mt-2 w-64 max-h-[70vh] overflow-y-auto rounded-xl shadow-xl z-50 py-2"
+                                    style={{ background: '#FDF6EC', border: '1px solid #e5ddd0' }}
                                 >
-                                    Apply Filter
-                                </button>
-                            </div>
-                        </div>
-                    </aside>
-
-                    {/* ── RIGHT MAIN PRODUCT GRID ── */}
-                    <div className="flex-1 min-w-0">
-                        
-                        {/* Filtering & Sorting Controls */}
-                        <div className="flex items-center justify-between mb-6 bg-white p-4 rounded-2xl border border-gray-200/80 shadow-sm">
-                            <div className="flex items-center gap-2">
-                                <span className="text-sm font-semibold text-gray-700 hidden sm:inline">Sort By:</span>
-                                
-                                {/* Sort Dropdown Trigger */}
-                                <div className="relative">
-                                    <button
-                                        onClick={() => setShowSortDropdown(!showSortDropdown)}
-                                        className="flex items-center gap-2 text-xs md:text-sm text-gray-600 border border-gray-200 rounded-xl px-4 py-2 hover:border-[var(--color-primary)]/40 bg-gray-55/30 transition-all font-medium"
-                                    >
-                                        <span>{SORT_OPTIONS.find(s => s.value === sortBy)?.label}</span>
-                                        <FiChevronDown size={14} className="text-gray-400 transition-transform duration-200" style={{ transform: showSortDropdown ? 'rotate(180deg)' : 'none' }} />
-                                    </button>
-                                    
-                                    {showSortDropdown && (
-                                        <>
-                                            <div className="fixed inset-0 z-30" onClick={() => setShowSortDropdown(false)} />
-                                            <div className="absolute left-0 mt-1 bg-white border border-gray-200 rounded-xl shadow-lg py-1.5 z-40 w-52 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-150">
-                                                {SORT_OPTIONS.map(opt => (
-                                                    <button
-                                                        key={opt.value}
-                                                        onClick={() => {
-                                                            setSortBy(opt.value);
-                                                            setPage(1);
-                                                            setShowSortDropdown(false);
-                                                        }}
-                                                        className={`w-full text-left text-xs md:text-sm px-4 py-2.5 transition-colors hover:bg-gray-50 flex items-center justify-between ${
-                                                            sortBy === opt.value 
-                                                                ? 'text-[var(--color-primary)] font-semibold bg-[var(--color-primary-light)]/20' 
-                                                                : 'text-gray-600'
-                                                        }`}
-                                                    >
-                                                        <span>{opt.label}</span>
-                                                    </button>
-                                                ))}
-                                            </div>
-                                        </>
-                                    )}
-                                </div>
-                            </div>
-
-                            {/* Active Applied Filters Summary */}
-                            <div className="flex items-center gap-2">
-                                {(priceRange.min || priceRange.max) && (
-                                    <span className="flex items-center gap-1.5 text-xs bg-[var(--color-primary-light)] text-[var(--color-primary)] px-3 py-1.5 rounded-full font-semibold border border-[var(--color-primary-border)]/50">
-                                        <span>৳{priceRange.min || 0} - ৳{priceRange.max || sliderMax}</span>
-                                        <button 
-                                            onClick={clearPriceFilter} 
-                                            className="hover:bg-[var(--color-primary)] hover:text-white rounded-full p-0.5 transition-all"
-                                        >
-                                            <FiX size={12} />
-                                        </button>
-                                    </span>
-                                )}
-                            </div>
-                        </div>
-
-                        {/* Product Grid Content */}
-                        {productsLoading || (productsFetching && products.length === 0) ? (
-                            <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4">
-                                {[...Array(8)].map((_, i) => (
-                                    <div key={i} className="bg-white border border-gray-200/80 rounded-2xl overflow-hidden shadow-sm animate-pulse">
-                                        <div className="aspect-[3/4] bg-gray-200" />
-                                        <div className="p-4 space-y-3">
-                                            <div className="h-4 bg-gray-200 rounded-md w-3/4" />
-                                            <div className="h-4 bg-gray-200 rounded-md w-1/2" />
-                                            <div className="h-8 bg-gray-200 rounded-lg w-full mt-4" />
+                                    {dropdownRoot && (
+                                        <div key={dropdownRoot._id} className="px-2 py-1">
+                                            <Link
+                                                href={`/category/${dropdownRoot.slug}`}
+                                                onClick={() => setShowCatDropdown(false)}
+                                                className="font-bangla block px-3 py-2 rounded-lg text-sm font-bold transition-colors"
+                                                style={currentSlug === dropdownRoot.slug
+                                                    ? { background: '#6B0F1A', color: '#FDF6EC' }
+                                                    : { color: '#2D1008' }}
+                                            >
+                                                সব {dropdownRoot.name}
+                                            </Link>
+                                            {dropdownRoot.children.length > 0 && (
+                                                <div className="mt-0.5 ml-2 border-l border-dashed" style={{ borderColor: '#d4c9b8' }}>
+                                                    {dropdownRoot.children.map((child: any) => (
+                                                        <Link
+                                                            key={child._id}
+                                                            href={`/category/${child.slug}`}
+                                                            onClick={() => setShowCatDropdown(false)}
+                                                            className="font-bangla block pl-4 pr-3 py-1.5 text-[13px] rounded-md transition-colors hover:underline"
+                                                            style={currentSlug === child.slug
+                                                                ? { color: '#6B0F1A', fontWeight: 700 }
+                                                                : { color: '#5a3e2b' }}
+                                                        >
+                                                            {child.name}
+                                                        </Link>
+                                                    ))}
+                                                </div>
+                                            )}
                                         </div>
-                                    </div>
-                                ))}
-                            </div>
-                        ) : products.length === 0 ? (
-                            <div className="text-center py-24 bg-white rounded-3xl border border-gray-200/80 shadow-md p-8 max-w-xl mx-auto">
-                                <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-amber-50 text-amber-500 mb-4 shadow-inner">
-                                    <FiAlertCircle size={32} />
-                                </div>
-                                <h3 className="text-lg md:text-xl font-bold text-gray-900 mb-2">No products found</h3>
-                                <p className="text-gray-500 text-sm md:text-base mb-6">
-                                    We couldn't find any products in <span className="font-semibold text-gray-800">"{activeCategoryName}"</span> matching your selected price filters.
-                                </p>
-                                <div className="flex flex-col sm:flex-row justify-center items-center gap-3">
-                                    {(priceRange.min || priceRange.max) && (
-                                        <button 
-                                            onClick={clearPriceFilter} 
-                                            className="w-full sm:w-auto text-xs md:text-sm font-semibold px-5 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl transition-all"
-                                        >
-                                            Clear Price Filter
-                                        </button>
                                     )}
-                                    <Link 
-                                        href="/products" 
-                                        className="w-full sm:w-auto text-xs md:text-sm font-bold px-5 py-2.5 bg-[var(--color-primary)] hover:bg-[var(--color-primary-dark)] text-white rounded-xl shadow-sm transition-all"
-                                    >
-                                        Browse All Products
-                                    </Link>
                                 </div>
-                            </div>
-                        ) : (
-                            <div className={`grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4 transition-opacity duration-300 ${productsFetching ? 'opacity-50' : 'opacity-100'}`}>
-                                {products.map((product: any) => (
-                                    <ShopCard key={product._id} product={product} />
-                                ))}
-                            </div>
-                        )}
-
-                        {/* Pagination Section */}
-                        {meta.totalPage > 1 && (
-                            <div className="flex items-center justify-center gap-2 mt-12">
-                                <button
-                                    disabled={page === 1}
-                                    onClick={() => {
-                                        setPage(p => p - 1);
-                                        window.scrollTo({ top: 180, behavior: 'smooth' });
-                                    }}
-                                    className="px-4 py-2.5 text-xs md:text-sm border border-gray-200 rounded-xl hover:border-[var(--color-primary)]/40 hover:bg-white disabled:opacity-40 disabled:cursor-not-allowed bg-gray-50 text-gray-600 font-medium transition-all"
-                                >
-                                    Previous
-                                </button>
-                                {Array.from({ length: meta.totalPage }, (_, i) => {
-                                    const pageNum = i + 1;
-                                    return (
-                                        <button
-                                            key={pageNum}
-                                            onClick={() => {
-                                                setPage(pageNum);
-                                                window.scrollTo({ top: 180, behavior: 'smooth' });
-                                            }}
-                                            className={`w-10 h-10 text-xs md:text-sm rounded-xl border transition-all font-semibold ${
-                                                page === pageNum 
-                                                    ? 'bg-[var(--color-primary)] text-white border-[var(--color-primary)] shadow-md shadow-[var(--color-primary)]/10' 
-                                                    : 'border-gray-200 hover:border-[var(--color-primary)]/40 bg-white text-gray-600 hover:shadow-sm'
-                                            }`}
-                                        >
-                                            {pageNum}
-                                        </button>
-                                    );
-                                })}
-                                <button
-                                    disabled={page >= meta.totalPage}
-                                    onClick={() => {
-                                        setPage(p => p + 1);
-                                        window.scrollTo({ top: 180, behavior: 'smooth' });
-                                    }}
-                                    className="px-4 py-2.5 text-xs md:text-sm border border-gray-200 rounded-xl hover:border-[var(--color-primary)]/40 hover:bg-white disabled:opacity-40 disabled:cursor-not-allowed bg-gray-50 text-gray-600 font-medium transition-all"
-                                >
-                                    Next
-                                </button>
-                            </div>
+                            </>
                         )}
                     </div>
                 </div>
-            </div>
 
-            {/* ── MOBILE FILTER OVERLAY DRAWER ── */}
-            {showMobileFilter && (
-                <div className="fixed inset-0 z-50 lg:hidden">
-                    {/* Backdrop */}
-                    <div 
-                        className="absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity duration-300" 
-                        onClick={() => setShowMobileFilter(false)} 
-                    />
-                    
-                    {/* Drawer Content */}
-                    <div className="absolute right-0 top-0 bottom-0 w-80 bg-white p-6 overflow-y-auto shadow-2xl flex flex-col justify-between transition-transform duration-300">
-                        <div>
-                            {/* Header */}
-                            <div className="flex items-center justify-between border-b border-gray-100 pb-4 mb-6">
-                                <h3 className="text-base font-bold text-gray-900 flex items-center gap-2">
-                                    <FiSliders size={18} className="text-[var(--color-primary)]" />
-                                    <span>Filter Options</span>
-                                </h3>
-                                <button 
-                                    onClick={() => setShowMobileFilter(false)}
-                                    className="p-1 rounded-full text-gray-400 hover:bg-gray-100 hover:text-gray-900 transition-all"
-                                >
-                                    <FiX size={20} />
-                                </button>
+                {isLoading && (
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                        {[...Array(8)].map((_, i) => (
+                            <div key={i} className="animate-pulse">
+                                <div className="aspect-[3/4] bg-gray-200 rounded" style={{ borderRadius: 3 }} />
+                                <div className="pt-3 space-y-2"><div className="h-2.5 bg-gray-200 rounded w-3/4" /><div className="h-3 bg-gray-200 rounded w-1/3" /></div>
                             </div>
+                        ))}
+                    </div>
+                )}
 
-                            {/* Categories Tree */}
-                            <div className="mb-8">
-                                <h4 className="text-sm font-bold text-gray-900 uppercase tracking-wider mb-4 border-b border-gray-100 pb-2">
-                                    Categories
-                                </h4>
-                                {categoriesLoading ? (
-                                    <div className="space-y-2 py-2">
-                                        {[...Array(5)].map((_, i) => (
-                                            <div key={i} className="h-6 bg-gray-100 rounded animate-pulse" />
-                                        ))}
-                                    </div>
-                                ) : categoryTree.length === 0 ? (
-                                    <p className="text-sm text-gray-400 italic">No categories found</p>
-                                ) : (
-                                    <div className="space-y-1">
-                                        {categoryTree.map((node: any) => renderCategoryNode(node))}
-                                    </div>
-                                )}
-                            </div>
+                {!isLoading && normalised.length === 0 && (
+                    <div className="text-center py-20">
+                        <span className="text-5xl block mb-4">🧶</span>
+                        <h3 className="font-bangla text-lg font-bold mb-2" style={{ color: '#2D1008' }}>কোনো পণ্য পাওয়া যায়নি</h3>
+                        <p className="font-bangla text-sm mb-6" style={{ color: '#8a7560' }}>আমরা শীঘ্রই আরও পণ্য যোগ করছি — পরে আবার দেখুন!</p>
+                        <Link href="/products" className="font-bangla inline-block px-6 py-2.5 rounded-lg text-sm font-bold" style={{ background: '#6B0F1A', color: '#FDF6EC' }}>সব পণ্য ঘুরে দেখুন</Link>
+                    </div>
+                )}
 
-                            {/* Price range */}
-                            <div className="border-t border-gray-100 pt-6">
-                                <h4 className="text-sm font-bold text-gray-900 uppercase tracking-wider mb-4 border-b border-gray-100 pb-2">
-                                    Price Range
-                                </h4>
-                                <div className="space-y-4">
-                                    <div className="flex items-center justify-between text-xs text-gray-500 font-semibold">
-                                        <span>৳0</span>
-                                        <span>৳{tempPriceRange.max}</span>
-                                    </div>
+                {!isLoading && normalised.length > 0 && (
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                        {normalised.map((product) => <ShopCard key={product.id} product={product} />)}
+                    </div>
+                )}
+            </section>
 
-                                    <input
-                                        type="range"
-                                        min="0"
-                                        max={sliderMax}
-                                        step="100"
-                                        value={tempPriceRange.max}
-                                        onChange={handleSliderChange}
-                                        className="w-full h-1.5 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-[var(--color-primary)] focus:outline-none"
-                                    />
-
-                                    <div className="flex gap-3">
-                                        <div className="flex-1">
-                                            <label className="text-[10px] text-gray-400 uppercase font-bold">Min</label>
-                                            <input
-                                                type="number"
-                                                value={tempPriceRange.min}
-                                                onChange={(e) => setTempPriceRange(p => ({ ...p, min: Number(e.target.value) }))}
-                                                className="w-full text-xs font-medium border border-gray-200 rounded-lg px-2.5 py-1.5 bg-gray-50 focus:outline-none"
-                                            />
-                                        </div>
-                                        <div className="flex-1">
-                                            <label className="text-[10px] text-gray-400 uppercase font-bold">Max</label>
-                                            <input
-                                                type="number"
-                                                value={tempPriceRange.max}
-                                                onChange={(e) => setTempPriceRange(p => ({ ...p, max: Number(e.target.value) }))}
-                                                className="w-full text-xs font-medium border border-gray-200 rounded-lg px-2.5 py-1.5 bg-gray-50 focus:outline-none"
-                                            />
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Footer Action Buttons inside mobile drawer */}
-                        <div className="border-t border-gray-100 pt-6 mt-8 space-y-2.5">
-                            <button
-                                onClick={applyPriceFilter}
-                                className="w-full font-bold py-3 bg-[var(--color-primary)] hover:bg-[var(--color-primary-dark)] text-white rounded-xl shadow-md transition-all duration-200 text-sm"
-                            >
-                                Apply Filters
-                            </button>
-                            <button
-                                onClick={() => {
-                                    clearPriceFilter();
-                                    setShowMobileFilter(false);
-                                }}
-                                className="w-full font-semibold py-3 border border-gray-200 hover:bg-gray-50 text-gray-600 rounded-xl transition-all duration-200 text-sm"
-                            >
-                                Clear All
-                            </button>
-                        </div>
+            {/* ══ BOTTOM CTA ══ */}
+            <section className="bg-jamdani-motif py-12" style={{ borderTop: '1px solid #e5ddd0' }}>
+                <div className="container mx-auto px-4 text-center">
+                    <h2 className="font-display text-2xl font-black mb-2" style={{ color: '#2D1008' }}>বিশেষ কিছু খুঁজছেন?</h2>
+                    <p className="font-bangla text-sm mb-6 max-w-md mx-auto" style={{ color: '#8a7560' }}>
+                        নিখুঁত পণ্য খুঁজে পাচ্ছেন না? আমাদের সাথে যোগাযোগ করুন, আমাদের বিশেষজ্ঞরা আপনাকে সাহায্য করবেন।
+                    </p>
+                    <div className="flex items-center justify-center gap-3 flex-wrap">
+                        <Link href="/contact" className="font-bangla px-6 py-3 text-sm font-bold rounded-lg" style={{ background: '#6B0F1A', color: '#FDF6EC' }}>বিশেষজ্ঞের সাথে কথা বলুন</Link>
+                        <Link href="/products" className="font-bangla px-6 py-3 text-sm font-bold rounded-lg" style={{ border: '1.5px solid #d4c9b8', color: '#5a3e2b' }}>সব পণ্য ঘুরে দেখুন</Link>
                     </div>
                 </div>
-            )}
+            </section>
         </div>
     );
 }

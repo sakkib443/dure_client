@@ -2,58 +2,72 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { FiCheckCircle, FiPackage, FiArrowRight, FiShoppingBag } from 'react-icons/fi';
+import { FiCheckCircle, FiPackage, FiShoppingBag, FiClock } from 'react-icons/fi';
+
+/* ── Brand palette ── */
+const MAROON = '#5F0000';
+const GOLD = '#C9A227';
+const CREAM = '#FDF6EC';
 
 const SuccessPage = () => {
     return (
-        <div className="bg-gray-50/50 min-h-screen flex items-center justify-center py-20 px-4">
-            <div className="max-w-md w-full bg-white rounded-md border border-gray-100 shadow-2xl shadow-gray-200/50 p-10 text-center animate-fadeIn">
-                <div className="w-24 h-24 bg-emerald-50 text-emerald-500 rounded-md flex items-center justify-center mx-auto mb-8 animate-bounce-slow">
-                    <FiCheckCircle size={48} />
+        <div style={{ background: CREAM, minHeight: '100vh' }} className="flex items-center justify-center py-20 px-4">
+            <div className="max-w-md w-full bg-white rounded-lg p-9 text-center animate-fadeIn" style={{ border: '1px solid #efe3cf' }}>
+
+                {/* Gold divider */}
+                <div className="flex items-center justify-center gap-3 mb-6">
+                    <span className="block w-10 h-px" style={{ background: GOLD }} />
+                    <span style={{ color: GOLD }} className="text-sm">◆</span>
+                    <span className="block w-10 h-px" style={{ background: GOLD }} />
                 </div>
 
-                <h1 className="text-3xl font-black text-gray-900 mb-4 tracking-tight">Order Successful!</h1>
-                <p className="text-gray-500 font-medium mb-10 leading-relaxed">
-                    Thank you for your purchase. Your order has been placed and is being processed. You will receive an email confirmation shortly.
+                <div className="w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6" style={{ background: '#f0fdf4', color: '#16a34a' }}>
+                    <FiCheckCircle size={42} />
+                </div>
+
+                <h1 className="font-display font-bold mb-3" style={{ color: MAROON, fontSize: '1.7rem' }}>
+                    অর্ডার সফল হয়েছে!
+                </h1>
+                <p className="font-bangla text-gray-500 text-sm leading-relaxed mb-6">
+                    আপনার অর্ডারটি গ্রহণ করা হয়েছে। আমাদের টিম শীঘ্রই আপনার সাথে যোগাযোগ করে অর্ডারটি নিশ্চিত করবে।
                 </p>
 
-                <div className="space-y-4">
-                    <Link
-                        href="/"
-                        className="w-full flex items-center justify-center gap-3 py-4 bg-gray-900 text-white rounded-md font-bold text-sm tracking-widest hover:bg-[var(--color-primary)] transition-all shadow-xl shadow-gray-200 hover:shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] group"
-                    >
-                        Continue Shopping
-                        <FiShoppingBag className="group-hover:translate-x-1 transition-transform" />
-                    </Link>
+                {/* Awaiting verification note */}
+                <div className="flex items-start gap-2.5 text-left rounded-md p-3.5 mb-7" style={{ background: '#fff7e9', border: `1px solid ${GOLD}55` }}>
+                    <FiClock size={16} style={{ color: GOLD }} className="mt-0.5 shrink-0" />
+                    <p className="font-bangla text-xs text-gray-600 leading-relaxed">
+                        ম্যানুয়াল পেমেন্ট (বিকাশ/নগদ) করে থাকলে — পেমেন্ট যাচাইয়ের পর অর্ডারটি নিশ্চিত করা হবে। অগ্রগতি আপনার ড্যাশবোর্ডে দেখতে পারবেন।
+                    </p>
+                </div>
 
+                <div className="space-y-3">
                     <Link
                         href="/dashboard/user/orders"
-                        className="w-full flex items-center justify-center gap-3 py-4 bg-white border border-gray-100 text-gray-700 rounded-md font-bold text-sm tracking-widest hover:border-[var(--color-primary)] hover:text-[var(--color-primary)] transition-all shadow-sm hover:scale-[1.02] active:scale-[0.98] group"
+                        className="font-bangla w-full flex items-center justify-center gap-2.5 py-3.5 rounded-md text-white text-sm font-semibold transition-all"
+                        style={{ background: MAROON }}
                     >
-                        View My Orders
-                        <FiPackage className="group-hover:rotate-12 transition-transform" />
+                        <FiPackage size={16} />
+                        আমার অর্ডার দেখুন
+                    </Link>
+
+                    <Link
+                        href="/shop"
+                        className="font-bangla w-full flex items-center justify-center gap-2.5 py-3.5 rounded-md text-sm font-semibold transition-all"
+                        style={{ border: `1px solid #e3d6c0`, color: MAROON }}
+                    >
+                        <FiShoppingBag size={16} />
+                        আরও কেনাকাটা করুন
                     </Link>
                 </div>
-
-                <p className="mt-10 text-[10px] font-bold text-gray-400 uppercase tracking-[0.2em]">
-                    Order Tracking ID: <span className="text-gray-900">MG-{Math.random().toString(36).substr(2, 9).toUpperCase()}</span>
-                </p>
             </div>
 
             <style jsx>{`
-                @keyframes bounce-slow {
-                    0%, 100% { transform: translateY(0); }
-                    50% { transform: translateY(-10px); }
-                }
-                .animate-bounce-slow {
-                    animation: bounce-slow 3s ease-in-out infinite;
-                }
                 @keyframes fadeIn {
                     from { opacity: 0; transform: translateY(20px); }
                     to { opacity: 1; transform: translateY(0); }
                 }
                 .animate-fadeIn {
-                    animation: fadeIn 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+                    animation: fadeIn 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
                 }
             `}</style>
         </div>

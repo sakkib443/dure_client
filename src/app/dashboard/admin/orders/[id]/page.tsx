@@ -341,6 +341,12 @@ export default function OrderDetailsPage() {
                                     <span className="font-mono text-gray-600 overflow-hidden text-ellipsis max-w-[120px]">{order.transactionId}</span>
                                 </div>
                             )}
+                            {order.senderNumber && (
+                                <div className="flex justify-between items-center text-xs">
+                                    <span className="text-gray-400">Sender No:</span>
+                                    <span className="font-mono text-gray-600">{order.senderNumber}</span>
+                                </div>
+                            )}
                         </div>
                     </div>
 
