@@ -1,13 +1,9 @@
 "use client";
 
 import React, { useMemo } from 'react';
-import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { useGetProductsQuery } from '@/redux/api/productApi';
-import { useAppDispatch } from '@/redux';
-import { addToCart } from '@/redux/slices/cartSlice';
-import toast from 'react-hot-toast';
-import { FiShoppingCart } from 'react-icons/fi';
+import NewProductCard from '@/components/shared/NewProductCard';
 
 const fadeUp = {
     hidden: { opacity: 0, y: 20 },
@@ -20,28 +16,6 @@ const fadeUp = {
 export default function HomeProductCollection() {
     const { data, isLoading } = useGetProductsQuery({ limit: 8, sort: '-createdAt' });
     const products: any[] = useMemo(() => data?.data || [], [data]);
-    const dispatch = useAppDispatch();
-
-    const handleAddToCart = (p: any, e: React.MouseEvent) => {
-        e.preventDefault();
-        e.stopPropagation();
-        dispatch(addToCart({
-            id: p._id,
-            productId: p._id,
-            name: p.name,
-            price: p.price,
-            mrp: p.originalPrice || p.price,
-            image: p.thumbnail,
-            category: p.category?.name || '',
-        }));
-        toast.success(
-            <div>
-                <p className="font-semibold text-sm">কার্টে যোগ হয়েছে!</p>
-                <p className="text-xs text-gray-400">{p.name}</p>
-            </div>,
-            { duration: 2500 }
-        );
-    };
 
     return (
         <section className="w-full py-14" style={{ background: '#fff' }}>
@@ -53,7 +27,6 @@ export default function HomeProductCollection() {
                     viewport={{ once: true }} transition={{ duration: 0.6 }}
                     className="flex flex-col items-center text-center mb-8"
                 >
-                    {/* Decorative */}
                     <div className="flex items-center gap-3 mb-2">
                         <span className="block w-10 h-px bg-[#C9A227]" />
                         <span className="text-[#C9A227] text-sm">◆</span>
@@ -105,7 +78,28 @@ export default function HomeProductCollection() {
                                 viewport={{ once: true }}
                                 variants={fadeUp}
                             >
-                                <ProductCard product={p} onAddToCart={handleAddToCart} />
+                                <NewProductCard
+                                    product={{
+                                        id:           p._id,
+                                        slug:         p.slug,
+                                        name:         p.name,
+                                        image:        p.thumbnail || p.images?.[0] || '',
+                                        price:        p.price,
+                                        originalPrice: p.originalPrice || undefined,
+                                        discount:     p.discount,
+                                        rating:       p.rating,
+                                        reviews:      p.reviewCount,
+                                        warranty:     p.tagline || '',
+                                        categoryName: p.category?.name || '',
+                                        priceType:    p.priceType || 'fixed',
+                                        sold:         p.totalSold || 0,
+                                        likeCount:    p.likeCount || 0,
+                                        commentCount: p.commentCount || 0,
+                                        shareCount:   p.shareCount || 0,
+                                        viewCount:    p.viewCount || 0,
+                                        reviewCount:  p.reviewCount || 0,
+                                    }}
+                                />
                             </motion.div>
                         ))}
                     </div>
@@ -120,70 +114,5 @@ export default function HomeProductCollection() {
                 )}
             </div>
         </section>
-    );
-}
-
-function ProductCard({ product: p, onAddToCart }: { product: any; onAddToCart: (p: any, e: React.MouseEvent) => void }) {
-    const discountPct = p.originalPrice && p.price < p.originalPrice
-        ? Math.round(((p.originalPrice - p.price) / p.originalPrice) * 100)
-        : 0;
-
-    return (
-        <Link href={p.slug ? `/product/${p.slug}` : '#'} className="group block">
-
-            {/* Image */}
-            <div className="relative overflow-hidden aspect-[3/4]" style={{ background: '#f5efe6', borderRadius: 3 }}>
-                {p.thumbnail ? (
-                    <img
-                        src={p.thumbnail}
-                        alt={p.name}
-                        className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-106"
-                    />
-                ) : (
-                    <div className="w-full h-full flex items-center justify-center text-4xl"
-                         style={{ background: 'linear-gradient(135deg, #f5efe6, #e8ddd3)' }}>
-                        🧶
-                    </div>
-                )}
-
-                {/* Discount badge */}
-                {discountPct > 0 && (
-                    <span className="absolute top-2 left-2 bg-[#800000] text-white text-[10px] font-bold px-2 py-0.5"
-                          style={{ fontFamily: "'Poppins', sans-serif" }}>
-                        -{discountPct}%
-                    </span>
-                )}
-
-                {/* Add to cart hover button */}
-                <button
-                    onClick={(e) => onAddToCart(p, e)}
-                    className="font-bangla-round absolute bottom-0 left-0 right-0 bg-[#1a0808]/85 text-[#fde8a8] text-sm font-semibold py-3 flex items-center justify-center gap-2 translate-y-full group-hover:translate-y-0 transition-transform duration-300"
-                >
-                    <FiShoppingCart size={14} />
-                    কার্টে যোগ করুন
-                </button>
-            </div>
-
-            {/* Info */}
-            <div className="pt-3 pb-1">
-                <h3
-                    className="font-bangla text-gray-800 font-medium leading-snug mb-1 line-clamp-2 group-hover:text-[#800000] transition-colors"
-                    style={{ fontSize: '0.98rem' }}
-                >
-                    {p.name}
-                </h3>
-
-                <div className="flex items-center gap-2">
-                    <span className="font-bold text-[#800000]" style={{ fontFamily: "'Poppins', sans-serif", fontSize: '0.85rem' }}>
-                        ৳{p.price?.toLocaleString('bn-BD')}
-                    </span>
-                    {p.originalPrice && p.originalPrice > p.price && (
-                        <span className="text-gray-400 line-through text-xs" style={{ fontFamily: "'Poppins', sans-serif" }}>
-                            ৳{p.originalPrice?.toLocaleString('bn-BD')}
-                        </span>
-                    )}
-                </div>
-            </div>
-        </Link>
     );
 }
