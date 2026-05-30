@@ -1,0 +1,244 @@
+
+> mega-ecommerce@0.1.0 dev
+> next dev
+
+▲ Next.js 16.1.2 (Turbopack)
+- Local:         http://localhost:3000
+- Network:       http://192.168.0.101:3000
+- Environments: .env.local
+
+✓ Starting...
+✓ Ready in 2.7s
+○ Compiling / ...
+ GET / 200 in 4.9s (compile: 4.8s, render: 113ms)
+ GET / 200 in 1020ms (compile: 408ms, render: 612ms)
+ GET /products 200 in 875ms (compile: 851ms, render: 24ms)
+✓ Compiled in 1755ms
+ GET / 200 in 227ms (compile: 67ms, render: 161ms)
+ GET / 200 in 27ms (compile: 10ms, render: 17ms)
+ GET /category/jamdani-saree 200 in 1081ms (compile: 1059ms, render: 22ms)
+ GET /category/jamdani-saree 200 in 39ms (compile: 20ms, render: 19ms)
+ GET /category/ornaments 200 in 35ms (compile: 17ms, render: 17ms)
+ GET /category/womens-dress 200 in 36ms (compile: 18ms, render: 18ms)
+ GET / 200 in 23ms (compile: 10ms, render: 13ms)
+ GET /category/jamdani-saree 200 in 31ms (compile: 15ms, render: 16ms)
+ GET / 200 in 80ms (compile: 17ms, render: 63ms)
+ GET / 200 in 71ms (compile: 8ms, render: 63ms)
+ GET /category/ornaments 200 in 32ms (compile: 16ms, render: 16ms)
+ GET /category/womens-dress 200 in 30ms (compile: 15ms, render: 15ms)
+ GET /contact 200 in 593ms (compile: 576ms, render: 17ms)
+ GET /contact 200 in 61s (compile: 4.4s, render: 57s)
+ GET / 200 in 61s (compile: 4.4s, render: 56s)
+ GET /contact 200 in 63s (compile: 4.8s, render: 58s)
+ GET / 200 in 63s (compile: 5.3s, render: 58s)
+ GET / 200 in 64s (compile: 5.2s, render: 58s)
+ GET / 200 in 65s (compile: 5.3s, render: 59s)
+ GET / 200 in 65s (compile: 5.3s, render: 59s)
+ GET / 200 in 21.5s (compile: 4.3s, render: 17.3s)
+ GET / 200 in 21.5s (compile: 4.2s, render: 17.3s)
+✓ Compiled in 169s
+⚠ Fast Refresh had to perform a full reload due to a runtime error.
+⚠ Fast Refresh had to perform a full reload due to a runtime error.
+⚠ Fast Refresh had to perform a full reload due to a runtime error.
+⚠ Fast Refresh had to perform a full reload due to a runtime error.
+✓ Compiled in 52.2s
+⚠ Server is approaching the used memory threshold, restarting...
+▲ Next.js 16.1.2 (Turbopack)
+- Local:         http://localhost:3000
+- Network:       http://192.168.0.101:3000
+- Environments: .env.local
+
+✓ Starting...
+✓ Ready in 1898ms
+ GET / 200 in 2.6s (compile: 2.2s, render: 413ms)
+ GET /category/jamdani 200 in 595ms (compile: 517ms, render: 78ms)
+ GET /category/jama 200 in 72ms (compile: 16ms, render: 56ms)
+ GET / 200 in 83ms (compile: 17ms, render: 65ms)
+✓ Compiled in 967ms
+ GET / 200 in 141ms (compile: 72ms, render: 69ms)
+ GET / 200 in 33ms (compile: 11ms, render: 23ms)
+ GET /category/jamdani 200 in 178ms (compile: 114ms, render: 63ms)
+ GET /category/jama 200 in 52s (compile: 3.7s, render: 48s)
+ GET /category/jama 200 in 53s (compile: 4.0s, render: 49s)
+✓ Compiled in 0ms
+ GET / 200 in 14.9s (compile: 2.9s, render: 12.0s)
+ GET / 200 in 922ms (compile: 285ms, render: 637ms)
+ GET /category/jamdani 200 in 634ms (compile: 27ms, render: 607ms)
+ GET /category/jama 200 in 584ms (compile: 9ms, render: 575ms)
+ GET / 200 in 87ms (compile: 8ms, render: 80ms)
+ GET / 200 in 69ms (compile: 9ms, render: 60ms)
+ GET / 200 in 30ms (compile: 12ms, render: 18ms)
+ GET /contact 200 in 144ms (compile: 126ms, render: 18ms)
+ GET / 200 in 25ms (compile: 11ms, render: 15ms)
+ GET /login 200 in 966ms (compile: 933ms, render: 33ms)
+✓ Compiled in 184ms
+✓ Compiled in 282ms
+✓ Compiled in 1067ms
+✓ Compiled in 840ms
+ GET /dashboard/user/wishlist 200 in 535ms (compile: 512ms, render: 23ms)
+ GET /login?redirect=%2Fdashboard%2Fuser%2Fwishlist 200 in 60ms (compile: 8ms, render: 52ms)
+ GET /login?redirect=%2Fdashboard%2Fuser%2Fwishlist 200 in 28ms (compile: 3ms, render: 26ms)
+✓ Compiled in 130ms
+✓ Compiled in 95ms
+ GET /category/jamdani 200 in 166ms (compile: 119ms, render: 46ms)
+ GET /category/ornaments 200 in 38ms (compile: 17ms, render: 20ms)
+ GET /category/jama 200 in 32ms (compile: 16ms, render: 16ms)
+ GET /contact 200 in 19ms (compile: 7ms, render: 12ms)
+ GET / 200 in 366ms (compile: 91ms, render: 276ms)
+ GET /category/jamdani 200 in 95ms (compile: 15ms, render: 80ms)
+ GET /products 200 in 645ms (compile: 553ms, render: 92ms)
+ GET / 200 in 24ms (compile: 8ms, render: 16ms)
+ GET /jamdani 200 in 254ms (compile: 239ms, render: 15ms)
+ GET /category/jamdani 200 in 29ms (compile: 15ms, render: 15ms)
+ GET / 200 in 21ms (compile: 8ms, render: 13ms)
+ GET /jamdani 200 in 23ms (compile: 9ms, render: 13ms)
+ GET / 200 in 22ms (compile: 9ms, render: 13ms)
+ GET /category/womens-dress 200 in 34ms (compile: 19ms, render: 15ms)
+ GET / 200 in 20ms (compile: 8ms, render: 12ms)
+ GET /category/ornaments 200 in 32ms (compile: 16ms, render: 15ms)
+ GET / 200 in 20ms (compile: 8ms, render: 12ms)
+ GET /jamdani 200 in 21ms (compile: 8ms, render: 14ms)
+ GET /category/jamdani 200 in 32ms (compile: 14ms, render: 17ms)
+✓ Compiled in 363ms
+ GET /category/dhakai-jamdani 200 in 150ms (compile: 108ms, render: 43ms)
+ GET /category/colorful-jamdani 200 in 33ms (compile: 15ms, render: 18ms)
+ GET /category/jamdani 200 in 31ms (compile: 17ms, render: 14ms)
+ GET /category/jamdani 200 in 272ms (compile: 18ms, render: 254ms)
+ GET /category/jamdani 200 in 65ms (compile: 8ms, render: 57ms)
+ GET /category/jama 200 in 82ms (compile: 16ms, render: 67ms)
+ GET /category/ornaments 200 in 70ms (compile: 8ms, render: 62ms)
+✓ Compiled in 396ms
+✓ Compiled in 348ms
+✓ Compiled in 338ms
+✓ Compiled in 568ms
+ GET /category/jamdani 200 in 447ms (compile: 117ms, render: 330ms)
+ GET /category/jamdani 200 in 77ms (compile: 16ms, render: 61ms)
+ GET /category/jamdani 200 in 70ms (compile: 8ms, render: 63ms)
+ GET /category/jamdani 200 in 79ms (compile: 16ms, render: 63ms)
+✓ Compiled in 162ms
+✓ Compiled in 307ms
+✓ Compiled in 263ms
+⨯ ReferenceError: sectionRoot is not defined
+    at CategoryPage (src\app\(main)\category\[slug]\page.tsx:92:47)
+  90 |     );
+  91 |
+> 92 |     const heroTitle = activeCategory?.name || sectionRoot?.name || 'সংগ্রহ';
+     |                                               ^
+  93 |     const heroDesc = activeCategory?.description
+  94 |         || 'বাংলার সমৃদ্ধ ঐতিহ্য থেকে দক্ষ কারিগরদের হাতে তৈরি সেরা পণ্যের সংগ্রহ আবিষ্কার করুন।';
+  95 | {
+  digest: '224526229'
+}
+ GET /category/jamdani 500 in 425ms (compile: 109ms, render: 316ms)
+⨯ ReferenceError: sectionRoot is not defined
+    at CategoryPage (src\app\(main)\category\[slug]\page.tsx:92:47)
+  90 |     );
+  91 |
+> 92 |     const heroTitle = activeCategory?.name || sectionRoot?.name || 'সংগ্রহ';
+     |                                               ^
+  93 |     const heroDesc = activeCategory?.description
+  94 |         || 'বাংলার সমৃদ্ধ ঐতিহ্য থেকে দক্ষ কারিগরদের হাতে তৈরি সেরা পণ্যের সংগ্রহ আবিষ্কার করুন।';
+  95 | {
+  digest: '224526229'
+}
+ GET /category/jamdani 500 in 72ms (compile: 8ms, render: 64ms)
+✓ Compiled in 327ms
+ GET /category/jamdani 200 in 363ms (compile: 107ms, render: 256ms)
+ GET /category/jamdani 200 in 65ms (compile: 7ms, render: 58ms)
+ GET /category/ornaments 200 in 29ms (compile: 13ms, render: 16ms)
+ GET /category/jama 200 in 34ms (compile: 19ms, render: 15ms)
+ GET /category/ornaments 200 in 32ms (compile: 17ms, render: 15ms)
+ GET /category/jamdani 200 in 30ms (compile: 16ms, render: 14ms)
+✓ Compiled in 545ms
+✓ Compiled in 231ms
+✓ Compiled in 200ms
+✓ Compiled in 570ms
+ GET /category/jamdani 200 in 449ms (compile: 116ms, render: 333ms)
+ GET /category/jama 200 in 62ms (compile: 7ms, render: 55ms)
+ GET /category/ornaments 200 in 83ms (compile: 15ms, render: 68ms)
+ GET /category/jamdani 200 in 68ms (compile: 7ms, render: 61ms)
+ GET /category/ornaments 200 in 27ms (compile: 13ms, render: 15ms)
+ GET /category/jama 200 in 29ms (compile: 15ms, render: 14ms)
+ GET /category/jamdani 200 in 31ms (compile: 12ms, render: 19ms)
+ GET /api/categories 404 in 167ms (compile: 115ms, render: 53ms)
+ GET /category/ornaments 200 in 36ms (compile: 18ms, render: 18ms)
+ GET / 200 in 26ms (compile: 10ms, render: 16ms)
+ GET /jamdani 200 in 25ms (compile: 11ms, render: 15ms)
+ GET /category/jamdani 200 in 34ms (compile: 17ms, render: 18ms)
+✓ Compiled in 434ms
+✓ Compiled in 389ms
+ GET /category/jamdani 200 in 395ms (compile: 111ms, render: 284ms)
+ GET /category/jamdani 200 in 65ms (compile: 12ms, render: 53ms)
+ GET /category/jama 200 in 74ms (compile: 18ms, render: 56ms)
+ GET /category/jama 200 in 69ms (compile: 10ms, render: 58ms)
+ GET /category/ornaments 200 in 71ms (compile: 11ms, render: 60ms)
+ GET /category/ornaments 200 in 62ms (compile: 10ms, render: 52ms)
+ GET /category/jamdani 200 in 75ms (compile: 18ms, render: 57ms)
+ GET / 200 in 642ms (compile: 533ms, render: 109ms)
+ GET /category/jamdani 200 in 38ms (compile: 18ms, render: 20ms)
+ GET /category/ornaments 200 in 31ms (compile: 16ms, render: 15ms)
+ GET /category/jama 200 in 31ms (compile: 16ms, render: 15ms)
+ GET /product/--13 200 in 1653ms (compile: 1630ms, render: 23ms)
+ GET / 200 in 43s (compile: 3.3s, render: 39.8s)
+ GET /product/--13 200 in 46s (compile: 3.5s, render: 42s)
+ GET /product/--14 200 in 55s (compile: 3.6s, render: 52s)
+ GET /product/--15 200 in 55s (compile: 3.6s, render: 52s)
+ GET /product/--5 200 in 58s (compile: 3.5s, render: 55s)
+ GET /product/--13 200 in 56s (compile: 4.5s, render: 51s)
+ GET /product/--13 200 in 56s (compile: 4.3s, render: 52s)
+ GET /product/--5 200 in 67s (compile: 4.9s, render: 62s)
+ GET /product/--15 200 in 67s (compile: 4.9s, render: 62s)
+ GET / 200 in 59s (compile: 4.7s, render: 54s)
+ GET / 200 in 60s (compile: 4.7s, render: 55s)
+ GET /category/jamdani 200 in 69s (compile: 4.7s, render: 64s)
+ GET /product/--10 200 in 25.9s (compile: 5.9s, render: 20.0s)
+ GET /category/jamdani 200 in 71s (compile: 4.8s, render: 66s)
+ GET /jamdani 200 in 64s (compile: 4.8s, render: 59s)
+ GET /product/--3 200 in 68s (compile: 4.1s, render: 63s)
+ GET /product/--3 200 in 70s (compile: 4.1s, render: 66s)
+ GET /product/--10 200 in 22.4s (compile: 4.0s, render: 18.4s)
+ GET /product/--10 200 in 18.5s (compile: 3.5s, render: 15.0s)
+○ Compiling /cart ...
+ GET /product/--10 200 in 18.4s (compile: 3.4s, render: 15.0s)
+ GET /cart 200 in 48s (compile: 9.0s, render: 39.1s)
+✓ Compiled in 0ms
+ GET /cart 200 in 102ms (compile: 17ms, render: 85ms)
+✓ Compiled in 180ms
+ GET /checkout 200 in 1245ms (compile: 1180ms, render: 65ms)
+ GET /checkout 200 in 57ms (compile: 11ms, render: 47ms)
+ GET /cart 200 in 82ms (compile: 15ms, render: 67ms)
+✓ Compiled in 410ms
+✓ Compiled in 237ms
+✓ Compiled in 301ms
+ GET /cart 200 in 472ms (compile: 122ms, render: 350ms)
+ GET /checkout 200 in 36ms (compile: 20ms, render: 16ms)
+✓ Compiled in 638ms
+✓ Compiled in 281ms
+✓ Compiled in 406ms
+✓ Compiled in 406ms
+✓ Compiled in 377ms
+✓ Compiled in 717ms
+✓ Compiled in 167ms
+ GET / 200 in 33ms (compile: 14ms, render: 19ms)
+ GET /category/womens-dress 200 in 50ms (compile: 31ms, render: 19ms)
+ GET /product/--4 200 in 45ms (compile: 29ms, render: 16ms)
+✓ Compiled in 339ms
+✓ Compiled in 329ms
+✓ Compiled in 316ms
+✓ Compiled in 493ms
+✓ Compiled in 344ms
+✓ Compiled in 315ms
+✓ Compiled in 312ms
+ GET /checkout 200 in 139ms (compile: 93ms, render: 46ms)
+ GET /dashboard/user 200 in 572ms (compile: 553ms, render: 19ms)
+ GET /login?redirect=%2Fdashboard%2Fuser 200 in 80ms (compile: 17ms, render: 63ms)
+ GET /login?redirect=%2Fdashboard%2Fuser 200 in 36ms (compile: 3ms, render: 33ms)
+ GET /dashboard/user 200 in 23ms (compile: 3ms, render: 20ms)
+ GET /dashboard/user/orders 200 in 462ms (compile: 440ms, render: 22ms)
+ GET / 200 in 27ms (compile: 10ms, render: 17ms)
+ GET / 200 in 25ms (compile: 11ms, render: 14ms)
+ GET /login 200 in 23ms (compile: 2ms, render: 20ms)
+ GET /dashboard/admin 200 in 892ms (compile: 866ms, render: 26ms)
+ GET /dashboard/admin/orders 200 in 554ms (compile: 537ms, render: 16ms)
+ GET /dashboard/admin/products 200 in 393ms (compile: 370ms, render: 23ms)
+ GET /dashboard/admin/products/new?id=6a109dccad9ce65cc91d62bc 200 in 1057ms (compile: 1038ms, render: 20ms)
