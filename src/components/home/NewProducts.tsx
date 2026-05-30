@@ -2,7 +2,7 @@
 
 import React from 'react';
 import SectionHeading from '@/components/shared/SectionHeading';
-import NewProductCard from '@/components/shared/NewProductCard';
+import ShopCard from '@/components/shared/ShopCard';
 
 const products = [
     { id: 11, name: 'Premium Leather Backpack', categoryName: 'Accessories', price: 7500, originalPrice: 9500, image: 'https://images.unsplash.com/photo-1548036691-cdf0e615eabe?q=80&w=800' },
@@ -23,17 +23,7 @@ const NewProducts: React.FC = () => {
             />
             <div className='grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6 mt-10'>
                 {products.map(p => (
-                    <NewProductCard
-                        key={p.id}
-                        product={{
-                            id:           p.id,
-                            name:         p.name,
-                            image:        p.image,
-                            price:        p.price,
-                            originalPrice: p.originalPrice,
-                            categoryName: p.categoryName,
-                        }}
-                    />
+                    <ShopCard key={p.id} product={p} />
                 ))}
             </div>
         </div>

@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useMemo, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-import NewProductCard from '@/components/shared/NewProductCard';
+import ShopCard from '@/components/shared/ShopCard';
 import { useGetProductsQuery } from '@/redux/api/productApi';
 import { useGetCategoriesQuery } from '@/redux/api/categoryApi';
 import { useAppSelector, useAppDispatch } from '@/redux';
@@ -313,7 +313,7 @@ const NewHomePageInner: React.FC = () => {
                     {/* Product grid for search/filter results */}
                     {displayProducts.length > 0 && (
                         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
-                            {displayProducts.map((p: any) => <NewProductCard key={p._id || p.id} product={p} />)}
+                            {displayProducts.map((p: any) => <ShopCard key={p._id || p.id} product={p} />)}
                         </div>
                     )}
                 </div>

@@ -5,7 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useGetCategoriesQuery } from '@/redux/api/categoryApi';
 import { useGetProductsQuery } from '@/redux/api/productApi';
-import NewProductCard from '@/components/shared/NewProductCard';
+import ShopCard from '@/components/shared/ShopCard';
 import Loader from '@/components/shared/Loader';
 import {
     FiChevronRight,
@@ -487,29 +487,7 @@ export default function CategoryPage() {
                         ) : (
                             <div className={`grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4 transition-opacity duration-300 ${productsFetching ? 'opacity-50' : 'opacity-100'}`}>
                                 {products.map((product: any) => (
-                                    <NewProductCard
-                                        key={product._id}
-                                        product={{
-                                            id: product._id,
-                                            slug: product.slug,
-                                            name: product.name,
-                                            image: product.thumbnail || product.images?.[0] || '',
-                                            price: product.price,
-                                            originalPrice: product.originalPrice || undefined,
-                                            discount: product.discount,
-                                            rating: product.rating,
-                                            reviews: product.reviewCount,
-                                            warranty: product.tagline || '',
-                                            categoryName: product.category?.name || activeCategoryName,
-                                            priceType: product.priceType || 'fixed',
-                                            sold: product.totalSold || 0,
-                                            likeCount: product.likeCount || 0,
-                                            commentCount: product.commentCount || 0,
-                                            shareCount: product.shareCount || 0,
-                                            viewCount: product.viewCount || 0,
-                                            reviewCount: product.reviewCount || 0,
-                                        }}
-                                    />
+                                    <ShopCard key={product._id} product={product} />
                                 ))}
                             </div>
                         )}

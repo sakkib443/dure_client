@@ -9,7 +9,7 @@ import {
     FiChevronDown, FiX, FiSearch,
     FiFilter, FiChevronRight,
 } from 'react-icons/fi';
-import NewProductCard from '@/components/shared/NewProductCard';
+import ShopCard from '@/components/shared/ShopCard';
 
 const LIMIT = 24;
 
@@ -502,29 +502,7 @@ const ProductsPageInner: React.FC = () => {
                         ) : (
                             <div className={`grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 xl:grid-cols-4 gap-4 transition-opacity duration-300 ${isFetching ? 'opacity-60' : 'opacity-100'}`}>
                                 {products.map((product: any) => (
-                                    <NewProductCard
-                                        key={product._id}
-                                        product={{
-                                            id:           product._id,
-                                            slug:         product.slug,
-                                            name:         product.name,
-                                            image:        product.thumbnail || product.images?.[0] || '',
-                                            price:        product.price,
-                                            originalPrice: product.originalPrice || undefined,
-                                            discount:     product.discount,
-                                            rating:       product.rating,
-                                            reviews:      product.reviewCount,
-                                            warranty:     product.tagline || '',
-                                            categoryName: product.category?.name || '',
-                                            priceType:    product.priceType || 'fixed',
-                                            sold:         product.totalSold || 0,
-                                            likeCount:    product.likeCount || 0,
-                                            commentCount: product.commentCount || 0,
-                                            shareCount:   product.shareCount || 0,
-                                            viewCount:    product.viewCount || 0,
-                                            reviewCount:  product.reviewCount || 0,
-                                        }}
-                                    />
+                                    <ShopCard key={product._id} product={product} />
                                 ))}
                             </div>
                         )}

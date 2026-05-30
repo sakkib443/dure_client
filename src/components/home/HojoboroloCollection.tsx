@@ -3,7 +3,7 @@
 import React, { useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { useGetProductsQuery } from '@/redux/api/productApi';
-import NewProductCard from '@/components/shared/NewProductCard';
+import ShopCard from '@/components/shared/ShopCard';
 
 const fadeUp = {
     hidden: { opacity: 0, y: 20 },
@@ -21,7 +21,6 @@ export default function HomeProductCollection() {
         <section className="w-full py-14" style={{ background: '#fff' }}>
             <div className="container mx-auto px-4">
 
-                {/* ── Heading ── */}
                 <motion.div
                     initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true }} transition={{ duration: 0.6 }}
@@ -43,7 +42,6 @@ export default function HomeProductCollection() {
                     </p>
                 </motion.div>
 
-                {/* ── Divider ── */}
                 <div className="relative mb-8">
                     <div className="absolute inset-y-0 left-0 right-0 flex items-center">
                         <div className="w-full h-px bg-[#e8ddd3]" />
@@ -53,7 +51,6 @@ export default function HomeProductCollection() {
                     </div>
                 </div>
 
-                {/* ── Skeleton ── */}
                 {isLoading && (
                     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
                         {[...Array(8)].map((_, i) => (
@@ -66,7 +63,6 @@ export default function HomeProductCollection() {
                     </div>
                 )}
 
-                {/* ── Products ── */}
                 {!isLoading && products.length > 0 && (
                     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
                         {products.map((p, i) => (
@@ -78,28 +74,7 @@ export default function HomeProductCollection() {
                                 viewport={{ once: true }}
                                 variants={fadeUp}
                             >
-                                <NewProductCard
-                                    product={{
-                                        id:           p._id,
-                                        slug:         p.slug,
-                                        name:         p.name,
-                                        image:        p.thumbnail || p.images?.[0] || '',
-                                        price:        p.price,
-                                        originalPrice: p.originalPrice || undefined,
-                                        discount:     p.discount,
-                                        rating:       p.rating,
-                                        reviews:      p.reviewCount,
-                                        warranty:     p.tagline || '',
-                                        categoryName: p.category?.name || '',
-                                        priceType:    p.priceType || 'fixed',
-                                        sold:         p.totalSold || 0,
-                                        likeCount:    p.likeCount || 0,
-                                        commentCount: p.commentCount || 0,
-                                        shareCount:   p.shareCount || 0,
-                                        viewCount:    p.viewCount || 0,
-                                        reviewCount:  p.reviewCount || 0,
-                                    }}
-                                />
+                                <ShopCard product={p} />
                             </motion.div>
                         ))}
                     </div>

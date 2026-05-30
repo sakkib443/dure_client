@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from 'react';
-import NewProductCard from '@/components/shared/NewProductCard';
+import ShopCard from '@/components/shared/ShopCard';
 
 const demoProducts = [
     { id: 1,  name: 'Premium Grocery Collection',    image: 'https://maraviyainfotech.com/projects/grabit-tailwind/grabit-tailwind/assets/img/product-images/52_1.jpg',  price: 450,   category: 'new' },
@@ -54,16 +54,7 @@ const PopularProducts: React.FC = () => {
 
             <div className='grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6'>
                 {filteredProducts.slice(0, 10).map(product => (
-                    <NewProductCard
-                        key={product.id}
-                        product={{
-                            id:           product.id,
-                            name:         product.name,
-                            image:        product.image,
-                            price:        product.price,
-                            originalPrice: (product as any).originalPrice,
-                        }}
-                    />
+                    <ShopCard key={product.id} product={product} />
                 ))}
             </div>
         </div>

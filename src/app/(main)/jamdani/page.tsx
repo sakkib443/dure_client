@@ -4,7 +4,7 @@ import React, { useState, useMemo } from 'react';
 import Link from 'next/link';
 import { useGetProductsQuery }    from '@/redux/api/productApi';
 import { useGetCategoriesQuery }  from '@/redux/api/categoryApi';
-import NewProductCard             from '@/components/shared/NewProductCard';
+import ShopCard                  from '@/components/shared/ShopCard';
 import { FiChevronRight } from 'react-icons/fi';
 
 const JAMDANI_KEYWORDS = ['jamdani', 'জামদানি'];
@@ -177,7 +177,7 @@ export default function JamdaniPage() {
 
                 {!isLoading && normalised.length > 0 && (
                     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-                        {normalised.map((product) => <NewProductCard key={product.id} product={product} />)}
+                        {normalised.map((product) => <ShopCard key={product.id} product={product} />)}
                     </div>
                 )}
             </section>
