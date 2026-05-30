@@ -4,14 +4,12 @@ import React, { useState, useEffect, useMemo, useCallback, Suspense } from 'reac
 import Link from 'next/link';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { useGetProductsQuery } from '@/redux/api/productApi';
-import { useAppDispatch } from '@/redux';
-import { addToCart } from '@/redux/slices/cartSlice';
-import { toast } from 'react-hot-toast';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-    FiShoppingCart, FiChevronDown, FiX, FiSearch,
-    FiFilter, FiChevronRight, FiStar, FiHeart,
+    FiChevronDown, FiX, FiSearch,
+    FiFilter, FiChevronRight,
 } from 'react-icons/fi';
+import NewProductCard from '@/components/shared/NewProductCard';
 
 const LIMIT = 24;
 
@@ -242,96 +240,6 @@ function SidebarFilter({
     );
 }
 
-// ── Product Card ────────────────────────────────────────────────
-function ProductCard({ product: p, onAddToCart }: { product: any; onAddToCart: (p: any, e: React.MouseEvent) => void }) {
-    const discountPct = p.originalPrice && p.price < p.originalPrice
-        ? Math.round(((p.originalPrice - p.price) / p.originalPrice) * 100)
-        : 0;
-
-    return (
-        <Link href={p.slug ? `/product/${p.slug}` : '#'} className="group block">
-
-            {/* Image */}
-            <div className="relative overflow-hidden aspect-[3/4]" style={{ background: '#f5efe6', borderRadius: 3 }}>
-                {p.thumbnail ? (
-                    <img
-                        src={p.thumbnail}
-                        alt={p.name}
-                        className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-                    />
-                ) : (
-                    <div className="w-full h-full flex items-center justify-center text-4xl"
-                         style={{ background: 'linear-gradient(135deg, #f5efe6, #e8ddd3)' }}>
-                        🧶
-                    </div>
-                )}
-
-                {/* Discount badge */}
-                {discountPct > 0 && (
-                    <span
-                        className="absolute top-2 left-2 bg-[#800000] text-white text-[10px] font-bold px-2 py-0.5"
-                        style={{ fontFamily: "'Poppins', sans-serif", borderRadius: 2 }}
-                    >
-                        -{discountPct}%
-                    </span>
-                )}
-
-                {/* Wishlist */}
-                <button
-                    onClick={e => { e.preventDefault(); e.stopPropagation(); }}
-                    className="absolute top-2 right-2 w-7 h-7 bg-white/80 backdrop-blur-sm rounded-full flex items-center justify-center text-gray-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all duration-300 shadow-sm"
-                >
-                    <FiHeart size={13} />
-                </button>
-
-                {/* Add to cart hover */}
-                <button
-                    onClick={e => onAddToCart(p, e)}
-                    className="font-bangla-round absolute bottom-0 left-0 right-0 bg-[#1a0808]/85 text-[#fde8a8] text-sm font-semibold py-3 flex items-center justify-center gap-2 translate-y-full group-hover:translate-y-0 transition-transform duration-300"
-                >
-                    <FiShoppingCart size={14} />
-                    কার্টে যোগ করুন
-                </button>
-            </div>
-
-            {/* Info */}
-            <div className="pt-3 pb-1">
-                {p.category?.name && (
-                    <p className="font-bangla text-[10px] text-[var(--color-primary)] uppercase tracking-wider mb-1 opacity-70">{p.category.name}</p>
-                )}
-                <h3
-                    className="font-bangla text-gray-800 font-medium leading-snug mb-1.5 line-clamp-2 group-hover:text-[#800000] transition-colors"
-                    style={{ fontSize: '0.95rem' }}
-                >
-                    {p.name}
-                </h3>
-
-                <div className="flex items-center gap-2">
-                    <span className="font-bold text-[#800000]" style={{ fontFamily: "'Poppins', sans-serif", fontSize: '0.88rem' }}>
-                        ৳{p.price?.toLocaleString('bn-BD')}
-                    </span>
-                    {p.originalPrice && p.originalPrice > p.price && (
-                        <span className="text-gray-400 line-through text-xs" style={{ fontFamily: "'Poppins', sans-serif" }}>
-                            ৳{p.originalPrice?.toLocaleString('bn-BD')}
-                        </span>
-                    )}
-                </div>
-
-                {/* Rating */}
-                {p.rating > 0 && (
-                    <div className="flex items-center gap-1 mt-1">
-                        <FiStar size={11} className="text-amber-400 fill-amber-400" />
-                        <span className="text-[11px] text-gray-500" style={{ fontFamily: "'Poppins', sans-serif" }}>
-                            {p.rating.toFixed(1)}
-                            {p.reviewCount > 0 && <span className="text-gray-400"> ({p.reviewCount})</span>}
-                        </span>
-                    </div>
-                )}
-            </div>
-        </Link>
-    );
-}
-
 // ── Skeleton Card ───────────────────────────────────────────────
 function SkeletonCard() {
     return (
@@ -350,7 +258,6 @@ function SkeletonCard() {
 const ProductsPageInner: React.FC = () => {
     const router = useRouter();
     const searchParams = useSearchParams();
-    const dispatch = useAppDispatch();
 
     const categoryParam = searchParams.get('category') || '';
     const searchParam   = searchParams.get('q') || '';
@@ -440,25 +347,6 @@ const ProductsPageInner: React.FC = () => {
         setLocalSearch('');
         setPriceRange({ min: '', max: '' });
         router.push('/products');
-    };
-
-    const handleAddToCart = (product: any, e: React.MouseEvent) => {
-        e.preventDefault();
-        e.stopPropagation();
-        dispatch(addToCart({
-            id:        product._id,
-            productId: product._id,
-            name:      product.name,
-            price:     product.price,
-            mrp:       product.originalPrice || product.price,
-            image:     product.thumbnail || '',
-            category:  product.category?.name || '',
-            quantity:  1,
-        }));
-        toast.success('কার্টে যোগ হয়েছে!', {
-            icon: '🛒',
-            style: { fontFamily: 'Hind Siliguri, sans-serif' },
-        });
     };
 
     const activeCategoryName = categories.find(c => c._id === selectedCategory)?.name || '';
@@ -614,10 +502,28 @@ const ProductsPageInner: React.FC = () => {
                         ) : (
                             <div className={`grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 xl:grid-cols-4 gap-4 transition-opacity duration-300 ${isFetching ? 'opacity-60' : 'opacity-100'}`}>
                                 {products.map((product: any) => (
-                                    <ProductCard
+                                    <NewProductCard
                                         key={product._id}
-                                        product={product}
-                                        onAddToCart={handleAddToCart}
+                                        product={{
+                                            id:           product._id,
+                                            slug:         product.slug,
+                                            name:         product.name,
+                                            image:        product.thumbnail || product.images?.[0] || '',
+                                            price:        product.price,
+                                            originalPrice: product.originalPrice || undefined,
+                                            discount:     product.discount,
+                                            rating:       product.rating,
+                                            reviews:      product.reviewCount,
+                                            warranty:     product.tagline || '',
+                                            categoryName: product.category?.name || '',
+                                            priceType:    product.priceType || 'fixed',
+                                            sold:         product.totalSold || 0,
+                                            likeCount:    product.likeCount || 0,
+                                            commentCount: product.commentCount || 0,
+                                            shareCount:   product.shareCount || 0,
+                                            viewCount:    product.viewCount || 0,
+                                            reviewCount:  product.reviewCount || 0,
+                                        }}
                                     />
                                 ))}
                             </div>

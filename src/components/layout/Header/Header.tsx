@@ -1,11 +1,11 @@
 "use client";
 
-import React, { useState, useRef, useCallback, useEffect, Suspense } from 'react';
+import React, { useState, useRef, useCallback, useEffect, useMemo, Suspense } from 'react';
 import Link from 'next/link';
-import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import {
     FiShoppingCart, FiSearch, FiX, FiUpload, FiUser, FiHeart,
-    FiPhone, FiMenu, FiChevronDown,
+    FiMenu, FiChevronDown, FiChevronRight,
 } from 'react-icons/fi';
 import { FaFacebookF, FaYoutube, FaWhatsapp } from 'react-icons/fa';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -14,22 +14,40 @@ import { setImageSearching, setImageSearchResults, clearImageSearch } from '@/re
 import { logout } from '@/redux/slices/authSlice';
 
 /* ─── Palette ────────────────────────────────────────────────────── */
-const MAROON   = '#6B0F1A';
-const GOLD     = '#C9A227';
-const DEEP     = '#2D1008';
-const CREAM    = '#FDF6EC';
-const SOFT_BG  = '#F5EDE0'; // warm soft beige
+const MAROON  = '#6B0F1A';
+const GOLD    = '#C9A227';
+const DEEP    = '#2D1008';
+const CREAM   = '#FDF6EC';
+const SOFT_BG = '#F5EDE0';
 
-/* ─── Nav links ─────────────────────────────────────────────────── */
-const NAV_LINKS = [
-    { label: 'হোম',              href: '/',                                icon: '🏠' },
-    { label: 'সব পণ্য',          href: '/products',                         icon: '🧺' },
-    { label: 'জামদানি',          href: '/products?category=jamdani-saree',  icon: '🥻' },
-    { label: 'নতুন কালেকশন',    href: '/products?sort=newest',             icon: '✨' },
-    { label: 'যোগাযোগ',         href: '/contact',                          icon: '📞' },
+/* ─── 3 fixed category menus ─────────────────────────────────────── */
+// mode 'children': find root by rootSlug, show its children in dropdown
+// mode 'siblings': show specific root categories directly in dropdown (no single root)
+const CATEGORY_MENU_DEFS = [
+    {
+        label:    'জামদানি',
+        icon:     '🥻',
+        rootSlug: 'jamdani',
+        href:     '/category/jamdani',
+        mode:     'children' as const,
+    },
+    {
+        label:    'অলংকার',
+        icon:     '💍',
+        rootSlug: 'ornaments',
+        href:     '/category/ornaments',
+        mode:     'children' as const,
+    },
+    {
+        label:    'জামা',
+        icon:     '👗',
+        rootSlug: 'jama',
+        href:     '/category/jama',
+        mode:     'children' as const,
+    },
 ];
 
-/* ─── Bengali floral / leaf SVG pattern for header background ──── */
+/* ─── Bengali floral SVG background ─────────────────────────────── */
 const FloralPatternBg = () => (
     <svg
         className="absolute inset-0 w-full h-full pointer-events-none"
@@ -38,22 +56,17 @@ const FloralPatternBg = () => (
     >
         <defs>
             <pattern id="banglaFloral" x="0" y="0" width="120" height="80" patternUnits="userSpaceOnUse">
-                {/* Stylised lotus / shapla petals */}
                 <path d="M60 10 Q65 20 60 30 Q55 20 60 10Z" fill={MAROON} opacity="0.045" />
                 <path d="M60 10 Q70 18 62 28" fill="none" stroke={MAROON} strokeWidth="0.5" opacity="0.05" />
                 <path d="M60 10 Q50 18 58 28" fill="none" stroke={MAROON} strokeWidth="0.5" opacity="0.05" />
-                {/* Small leaf left */}
                 <path d="M20 55 Q28 45 36 55 Q28 50 20 55Z" fill={GOLD} opacity="0.04" />
                 <path d="M28 50 L28 60" stroke={GOLD} strokeWidth="0.4" opacity="0.05" />
-                {/* Small leaf right */}
                 <path d="M90 50 Q98 40 106 50 Q98 45 90 50Z" fill={GOLD} opacity="0.04" />
                 <path d="M98 45 L98 55" stroke={GOLD} strokeWidth="0.4" opacity="0.05" />
-                {/* Tiny dots — alpona style */}
                 <circle cx="10" cy="15" r="1" fill={MAROON} opacity="0.04" />
                 <circle cx="110" cy="70" r="1" fill={MAROON} opacity="0.04" />
                 <circle cx="45" cy="70" r="0.8" fill={GOLD} opacity="0.04" />
                 <circle cx="75" cy="5" r="0.8" fill={GOLD} opacity="0.04" />
-                {/* Curved vine */}
                 <path d="M0 40 Q30 30 60 40 Q90 50 120 40" fill="none" stroke={MAROON} strokeWidth="0.4" opacity="0.035" />
             </pattern>
         </defs>
@@ -61,7 +74,6 @@ const FloralPatternBg = () => (
     </svg>
 );
 
-/* ─── Bottom motif strip ────────────────────────────────────────── */
 const MotifStrip = () => (
     <div className="w-full overflow-hidden" style={{ height: 4 }}>
         <svg width="100%" height="4" preserveAspectRatio="xMidYMid slice">
@@ -76,7 +88,6 @@ const MotifStrip = () => (
     </div>
 );
 
-/* ─── Divider for mobile drawer ────────────────────────────────── */
 const MotifDivider = () => (
     <div className="flex items-center gap-2 w-full my-4">
         <span className="flex-1 h-px" style={{ background: `linear-gradient(to right, transparent, ${GOLD}50)` }} />
@@ -85,13 +96,11 @@ const MotifDivider = () => (
     </div>
 );
 
-/* ─── Logo ──────────────────────────────────────────────────────── */
 function BanglaLogo({ small, light }: { small?: boolean; light?: boolean }) {
     const textColor = light ? CREAM : DEEP;
     const subColor  = light ? `${GOLD}CC` : `${MAROON}AA`;
     return (
         <Link href="/" className="select-none flex items-center gap-2.5 group">
-            {/* Icon: stylised জ in a circle */}
             <div
                 className="flex items-center justify-center rounded-full shrink-0 transition-transform duration-300 group-hover:scale-105"
                 style={{
@@ -102,26 +111,14 @@ function BanglaLogo({ small, light }: { small?: boolean; light?: boolean }) {
                     border: `2px solid ${GOLD}60`,
                 }}
             >
-                <span
-                    className="font-display font-black"
-                    style={{ color: GOLD, fontSize: small ? '1rem' : '1.3rem', lineHeight: 1 }}
-                >
-                    জ
-                </span>
+                <span className="font-display font-black" style={{ color: GOLD, fontSize: small ? '1rem' : '1.3rem', lineHeight: 1 }}>জ</span>
             </div>
-            {/* Text */}
             <div className="flex flex-col">
-                <span
-                    className="font-display font-black leading-none tracking-tight"
-                    style={{ fontSize: small ? '1.2rem' : '1.5rem', color: textColor }}
-                >
+                <span className="font-display font-black leading-none tracking-tight" style={{ fontSize: small ? '1.2rem' : '1.5rem', color: textColor }}>
                     ঝামদানি
                 </span>
                 {!small && (
-                    <span
-                        className="font-bangla leading-none mt-0.5"
-                        style={{ fontSize: '0.55rem', color: subColor, letterSpacing: '0.08em' }}
-                    >
+                    <span className="font-bangla leading-none mt-0.5" style={{ fontSize: '0.55rem', color: subColor, letterSpacing: '0.08em' }}>
                         ঐতিহ্যের শ্রেষ্ঠ সংগ্রহ
                     </span>
                 )}
@@ -136,20 +133,45 @@ function BanglaLogo({ small, light }: { small?: boolean; light?: boolean }) {
 const HeaderInner: React.FC = () => {
     const pathname = usePathname();
     const router   = useRouter();
-    const searchParams = useSearchParams();   // reactive → re-renders on query change
     const dispatch = useAppDispatch();
 
-    const [isMobileMenuOpen,  setIsMobileMenuOpen]  = useState(false);
-    const [isImageSearchOpen, setIsImageSearchOpen] = useState(false);
-    const [isDragging,        setIsDragging]        = useState(false);
-    const [isProfileOpen,     setIsProfileOpen]     = useState(false);
-    const [scrolled,          setScrolled]          = useState(false);
+    const [isMobileMenuOpen,    setIsMobileMenuOpen]    = useState(false);
+    const [isImageSearchOpen,   setIsImageSearchOpen]   = useState(false);
+    const [isDragging,          setIsDragging]          = useState(false);
+    const [isProfileOpen,       setIsProfileOpen]       = useState(false);
+    const [scrolled,            setScrolled]            = useState(false);
+    const [openDropdown,        setOpenDropdown]        = useState<string | null>(null);
+    const [openMobileAccordion, setOpenMobileAccordion] = useState<string | null>(null);
+    const [navCategories,       setNavCategories]       = useState<any[]>([]);
 
-    const profileRef   = useRef<HTMLDivElement>(null);
-    const fileInputRef = useRef<HTMLInputElement>(null);
+    const profileRef    = useRef<HTMLDivElement>(null);
+    const fileInputRef  = useRef<HTMLInputElement>(null);
+    const dropdownTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
     const cartItems = useAppSelector(s => s.cart.items);
     const { user, isAuthenticated } = useAppSelector(s => s.auth);
+
+    /* ── Fetch categories for nav dropdowns ── */
+    useEffect(() => {
+        fetch(`${process.env.NEXT_PUBLIC_API_URL}/categories`)
+            .then(r => r.json())
+            .then(data => { if (data.success) setNavCategories(data.data || data.categories || []); })
+            .catch(() => {});
+    }, []);
+
+    /* ── Build nav tree ── */
+    const navTree = useMemo(() => {
+        return CATEGORY_MENU_DEFS.map(def => {
+            const root = navCategories.find(c => !c.parent && c.slug === def.rootSlug);
+            const children = root
+                ? navCategories.filter(c => {
+                    const pid = c.parent?._id || c.parent;
+                    return pid === root._id;
+                })
+                : [];
+            return { ...def, children };
+        });
+    }, [navCategories]);
 
     useEffect(() => {
         const fn = () => setScrolled(window.scrollY > 10);
@@ -175,7 +197,16 @@ const HeaderInner: React.FC = () => {
         router.push('/');
     };
 
-    /* ── image search ── */
+    /* ── Dropdown hover with delay so it doesn't flicker ── */
+    const handleDropdownEnter = (label: string) => {
+        if (dropdownTimer.current) clearTimeout(dropdownTimer.current);
+        setOpenDropdown(label);
+    };
+    const handleDropdownLeave = () => {
+        dropdownTimer.current = setTimeout(() => setOpenDropdown(null), 120);
+    };
+
+    /* ── Image search ── */
     const handleImageUpload = useCallback(async (file: File) => {
         setIsImageSearchOpen(false);
         dispatch(setImageSearching(true));
@@ -187,16 +218,16 @@ const HeaderInner: React.FC = () => {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    labels: analysis.labels,
-                    colors: analysis.colors.map((c: any) => c.name),
+                    labels:     analysis.labels,
+                    colors:     analysis.colors.map((c: any) => c.name),
                     colorHexes: analysis.colors.map((c: any) => c.hex),
-                    keywords: analysis.keywords,
+                    keywords:   analysis.keywords,
                 }),
             });
             const data = await res.json();
             if (data.success) {
                 dispatch(setImageSearchResults({
-                    products: data.data.products,
+                    products:   data.data.products,
                     searchMeta: { ...data.data.searchMeta, colors: analysis.colors },
                     previewImage: imageUrl,
                 }));
@@ -233,21 +264,26 @@ const HeaderInner: React.FC = () => {
         return () => document.removeEventListener('paste', handlePaste);
     }, [handlePaste]);
 
-    const isActive = (href: string) => {
-        if (href === '/') return pathname === '/';
-        const [hrefPath, hrefQuery] = href.split('?');
-        if (pathname !== hrefPath) return false;
-        // Plain link (e.g. /products) is active only when NO filter query is set
-        if (!hrefQuery) return !searchParams.has('category') && !searchParams.has('sort');
-        // Query link (e.g. /products?category=...) — every param must match
-        const hrefParams = new URLSearchParams(hrefQuery);
-        for (const [key, val] of hrefParams.entries()) {
-            if (searchParams.get(key) !== val) return false;
-        }
-        return true;
+    const isHomeActive     = pathname === '/';
+    const isContactActive  = pathname === '/contact';
+    const isCatActive = (def: typeof CATEGORY_MENU_DEFS[0]) =>
+        pathname === `/category/${def.rootSlug}` || pathname.startsWith(`/category/${def.rootSlug}/`);
+
+    const navLinkStyle = (active: boolean) => ({
+        fontSize:   '0.9rem',
+        color:      active ? MAROON : '#5a3e2b',
+        background: active ? `${MAROON}0C` : 'transparent',
+    });
+
+    const navHoverOn  = (e: React.MouseEvent<HTMLAnchorElement>) => {
+        (e.currentTarget as HTMLElement).style.color      = MAROON;
+        (e.currentTarget as HTMLElement).style.background = `${MAROON}08`;
+    };
+    const navHoverOff = (e: React.MouseEvent<HTMLAnchorElement>) => {
+        (e.currentTarget as HTMLElement).style.color      = '#5a3e2b';
+        (e.currentTarget as HTMLElement).style.background = 'transparent';
     };
 
-    /* ── Icon button helper ── */
     const IconBtn = ({ children, ...props }: React.ButtonHTMLAttributes<HTMLButtonElement> & { children: React.ReactNode }) => (
         <button
             {...props}
@@ -262,68 +298,155 @@ const HeaderInner: React.FC = () => {
             {/* ════════════════════════ MAIN HEADER ════════════════════ */}
             <header
                 style={{
-                    position: 'sticky', top: 0, zIndex: 50,
-                    background: SOFT_BG,
-                    transition: 'box-shadow 0.3s ease',
-                    boxShadow: scrolled ? '0 2px 20px rgba(45,16,8,0.12)' : 'none',
+                    position:   'sticky',
+                    top:         0,
+                    zIndex:      50,
+                    background:  SOFT_BG,
+                    transition:  'box-shadow 0.3s ease',
+                    boxShadow:   scrolled ? '0 2px 20px rgba(45,16,8,0.12)' : 'none',
                 }}
             >
-                {/* Floral bg pattern */}
                 <div className="relative">
                     <FloralPatternBg />
 
                     <div className="container mx-auto px-4 relative">
                         <div className="flex items-center justify-between gap-4" style={{ height: 70 }}>
 
-                            {/* ── Logo ── */}
+                            {/* Logo */}
                             <div onClick={() => dispatch(clearImageSearch())}>
                                 <BanglaLogo />
                             </div>
 
                             {/* ── Desktop Nav ── */}
                             <nav className="hidden lg:flex items-center gap-1">
-                                {NAV_LINKS.map(({ label, href }) => {
-                                    const active = isActive(href);
+
+                                {/* হোম */}
+                                <Link
+                                    href="/"
+                                    className="relative font-bangla font-semibold px-4 py-2 rounded-lg transition-all duration-200"
+                                    style={navLinkStyle(isHomeActive)}
+                                    onMouseEnter={e => { if (!isHomeActive) navHoverOn(e); }}
+                                    onMouseLeave={e => { if (!isHomeActive) navHoverOff(e); }}
+                                >
+                                    হোম
+                                    {isHomeActive && <span className="absolute bottom-1 left-4 right-4 h-0.5 rounded-full" style={{ background: `linear-gradient(to right, ${MAROON}, ${GOLD})` }} />}
+                                </Link>
+
+                                {/* ── 3 Category dropdowns ── */}
+                                {navTree.map(cat => {
+                                    const active = isCatActive(cat);
                                     return (
-                                        <Link
-                                            key={href}
-                                            href={href}
-                                            className="relative font-bangla font-semibold px-4 py-2 rounded-lg transition-all duration-200"
-                                            style={{
-                                                fontSize: '0.9rem',
-                                                color: active ? MAROON : '#5a3e2b',
-                                                background: active ? `${MAROON}0C` : 'transparent',
-                                            }}
-                                            onMouseEnter={e => {
-                                                if (!active) {
-                                                    (e.currentTarget as HTMLElement).style.color = MAROON;
-                                                    (e.currentTarget as HTMLElement).style.background = `${MAROON}08`;
-                                                }
-                                            }}
-                                            onMouseLeave={e => {
-                                                if (!active) {
-                                                    (e.currentTarget as HTMLElement).style.color = '#5a3e2b';
-                                                    (e.currentTarget as HTMLElement).style.background = 'transparent';
-                                                }
-                                            }}
+                                        <div
+                                            key={cat.label}
+                                            className="relative"
+                                            onMouseEnter={() => handleDropdownEnter(cat.label)}
+                                            onMouseLeave={handleDropdownLeave}
                                         >
-                                            {label}
-                                            {/* Active underline */}
-                                            {active && (
-                                                <span
-                                                    className="absolute bottom-1 left-4 right-4 h-0.5 rounded-full"
-                                                    style={{ background: `linear-gradient(to right, ${MAROON}, ${GOLD})` }}
-                                                />
-                                            )}
-                                        </Link>
+                                            <Link
+                                                href={cat.href}
+                                                className="relative font-bangla font-semibold px-4 py-2 rounded-lg transition-all duration-200 flex items-center gap-1"
+                                                style={navLinkStyle(active)}
+                                                onMouseEnter={e => { if (!active) navHoverOn(e); }}
+                                                onMouseLeave={e => { if (!active) navHoverOff(e); }}
+                                            >
+                                                <span>{cat.label}</span>
+                                                {cat.children.length > 0 && (
+                                                    <FiChevronDown
+                                                        size={13}
+                                                        style={{
+                                                            color:      active ? MAROON : '#5a3e2b80',
+                                                            transition: 'transform 0.2s',
+                                                            transform:  openDropdown === cat.label ? 'rotate(180deg)' : 'none',
+                                                        }}
+                                                    />
+                                                )}
+                                                {active && (
+                                                    <span className="absolute bottom-1 left-4 right-4 h-0.5 rounded-full" style={{ background: `linear-gradient(to right, ${MAROON}, ${GOLD})` }} />
+                                                )}
+                                            </Link>
+
+                                            {/* Dropdown panel */}
+                                            <AnimatePresence>
+                                                {openDropdown === cat.label && cat.children.length > 0 && (
+                                                    <motion.div
+                                                        initial={{ opacity: 0, y: 6, scale: 0.98 }}
+                                                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                                                        exit={{ opacity: 0, y: 6, scale: 0.98 }}
+                                                        transition={{ duration: 0.14 }}
+                                                        onMouseEnter={() => handleDropdownEnter(cat.label)}
+                                                        onMouseLeave={handleDropdownLeave}
+                                                        className="absolute left-0 top-full pt-1 z-50 min-w-[190px]"
+                                                    >
+                                                        <div
+                                                            className="py-1.5 overflow-hidden"
+                                                            style={{
+                                                                background:  '#fff',
+                                                                border:      `1px solid #e8ddd3`,
+                                                                borderRadius: 8,
+                                                                boxShadow:   '0 12px 36px rgba(45,16,8,0.12)',
+                                                            }}
+                                                        >
+                                                            {/* Panel header */}
+                                                            <div className="px-4 py-2 mb-1" style={{ borderBottom: `1px solid #e8ddd3` }}>
+                                                                <span className="font-bangla text-xs font-bold uppercase tracking-widest" style={{ color: MAROON }}>
+                                                                    {cat.label}
+                                                                </span>
+                                                            </div>
+
+                                                            {/* Sub-categories */}
+                                                            {cat.children.map((child: any) => (
+                                                                <Link
+                                                                    key={child._id}
+                                                                    href={`/category/${child.slug}`}
+                                                                    className="font-bangla flex items-center gap-2.5 px-4 py-2.5 text-sm transition-colors hover:bg-[#6B0F1A08]"
+                                                                    style={{ color: pathname === `/category/${child.slug}` ? MAROON : '#5a3e2b' }}
+                                                                >
+                                                                    <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ background: GOLD + '80' }} />
+                                                                    <span className="flex-1">{child.name}</span>
+                                                                    {child.productCount > 0 && (
+                                                                        <span className="text-[10px] text-gray-400" style={{ fontFamily: 'Poppins, sans-serif' }}>
+                                                                            {child.productCount}
+                                                                        </span>
+                                                                    )}
+                                                                </Link>
+                                                            ))}
+
+                                                            {/* View all */}
+                                                            <div className="pt-1 mt-1" style={{ borderTop: `1px solid #e8ddd3` }}>
+                                                                <Link
+                                                                    href={cat.href}
+                                                                    className="font-bangla flex items-center gap-1.5 px-4 py-2 text-xs font-semibold transition-colors hover:bg-[#6B0F1A08]"
+                                                                    style={{ color: MAROON }}
+                                                                >
+                                                                    সব {cat.label} দেখুন
+                                                                    <FiChevronRight size={11} />
+                                                                </Link>
+                                                            </div>
+                                                        </div>
+                                                    </motion.div>
+                                                )}
+                                            </AnimatePresence>
+                                        </div>
                                     );
                                 })}
+
+                                {/* যোগাযোগ */}
+                                <Link
+                                    href="/contact"
+                                    className="relative font-bangla font-semibold px-4 py-2 rounded-lg transition-all duration-200"
+                                    style={navLinkStyle(isContactActive)}
+                                    onMouseEnter={e => { if (!isContactActive) navHoverOn(e); }}
+                                    onMouseLeave={e => { if (!isContactActive) navHoverOff(e); }}
+                                >
+                                    যোগাযোগ
+                                    {isContactActive && <span className="absolute bottom-1 left-4 right-4 h-0.5 rounded-full" style={{ background: `linear-gradient(to right, ${MAROON}, ${GOLD})` }} />}
+                                </Link>
                             </nav>
 
                             {/* ── Right Actions ── */}
                             <div className="flex items-center gap-0.5">
 
-                                {/* Search */}
+                                {/* Image search */}
                                 <IconBtn onClick={() => setIsImageSearchOpen(true)} aria-label="ছবি দিয়ে খুঁজুন">
                                     <FiSearch size={19} />
                                 </IconBtn>
@@ -390,7 +513,7 @@ const HeaderInner: React.FC = () => {
                                                     className="absolute right-0 top-full mt-2 w-56 overflow-hidden z-50"
                                                     style={{ background: '#fff', border: `1px solid #e8ddd3`, borderRadius: 8, boxShadow: '0 12px 40px rgba(45,16,8,0.12)' }}
                                                 >
-                                                    <div className="px-4 py-3" style={{ background: `${SOFT_BG}`, borderBottom: '1px solid #e8ddd3' }}>
+                                                    <div className="px-4 py-3" style={{ background: SOFT_BG, borderBottom: '1px solid #e8ddd3' }}>
                                                         <p className="font-bangla text-sm font-bold truncate" style={{ color: DEEP }}>{user.name || 'ব্যবহারকারী'}</p>
                                                         <p className="text-[11px] truncate mt-0.5" style={{ color: '#8a7560', fontFamily: 'Poppins, sans-serif' }}>{user.email}</p>
                                                     </div>
@@ -400,10 +523,13 @@ const HeaderInner: React.FC = () => {
                                                             { href: '/dashboard/user/orders', icon: <FiShoppingCart size={14} />, label: 'আমার অর্ডার' },
                                                             { href: '/dashboard/user/wishlist', icon: <FiHeart size={14} />, label: 'উইশলিস্ট' },
                                                         ].map(item => (
-                                                            <Link key={item.href} href={item.href}
-                                                                  className="font-bangla flex items-center gap-2.5 px-4 py-2.5 text-sm transition-colors hover:bg-gray-50"
-                                                                  style={{ color: '#5a3e2b' }}
-                                                                  onClick={() => setIsProfileOpen(false)}>
+                                                            <Link
+                                                                key={item.href}
+                                                                href={item.href}
+                                                                className="font-bangla flex items-center gap-2.5 px-4 py-2.5 text-sm transition-colors hover:bg-gray-50"
+                                                                style={{ color: '#5a3e2b' }}
+                                                                onClick={() => setIsProfileOpen(false)}
+                                                            >
                                                                 <span style={{ color: MAROON }}>{item.icon}</span> {item.label}
                                                             </Link>
                                                         ))}
@@ -430,19 +556,13 @@ const HeaderInner: React.FC = () => {
                                 )}
 
                                 {/* Mobile hamburger */}
-                                <IconBtn
-                                    onClick={() => setIsMobileMenuOpen(true)}
-                                    aria-label="মেনু"
-                                    className="lg:hidden"
-                                >
+                                <IconBtn onClick={() => setIsMobileMenuOpen(true)} aria-label="মেনু" className="lg:hidden">
                                     <FiMenu size={22} />
                                 </IconBtn>
                             </div>
                         </div>
                     </div>
                 </div>
-
-                {/* Bottom motif strip */}
                 <MotifStrip />
             </header>
 
@@ -465,35 +585,112 @@ const HeaderInner: React.FC = () => {
                             {/* Drawer header */}
                             <div className="flex items-center justify-between px-5 py-3.5" style={{ background: MAROON }}>
                                 <BanglaLogo small light />
-                                <button onClick={() => setIsMobileMenuOpen(false)} className="p-1.5 rounded-lg transition-colors" style={{ color: `${CREAM}CC` }}
+                                <button
+                                    onClick={() => setIsMobileMenuOpen(false)}
+                                    className="p-1.5 rounded-lg transition-colors"
+                                    style={{ color: `${CREAM}CC` }}
                                     onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = GOLD; }}
-                                    onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = `${CREAM}CC`; }}>
+                                    onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = `${CREAM}CC`; }}
+                                >
                                     <FiX size={22} />
                                 </button>
                             </div>
 
-                            {/* Nav links */}
                             <div className="flex-1 overflow-y-auto px-4 py-5" style={{ background: CREAM }}>
                                 <p className="font-bangla text-[10px] font-bold uppercase tracking-widest mb-3 px-2" style={{ color: `${MAROON}60` }}>মেনু</p>
+
                                 <nav className="flex flex-col gap-0.5">
-                                    {NAV_LINKS.map(({ label, href, icon }) => {
-                                        const active = isActive(href);
+
+                                    {/* হোম */}
+                                    <Link
+                                        href="/"
+                                        className="font-bangla flex items-center gap-3 px-4 py-3 rounded-lg text-[15px] font-semibold transition-all"
+                                        style={{
+                                            background:  isHomeActive ? `${MAROON}0D` : 'transparent',
+                                            color:       isHomeActive ? MAROON : DEEP,
+                                            borderLeft:  isHomeActive ? `3px solid ${GOLD}` : '3px solid transparent',
+                                        }}
+                                    >
+                                        <span>🏠</span> হোম
+                                        {isHomeActive && <span className="ml-auto text-xs" style={{ color: GOLD }}>◆</span>}
+                                    </Link>
+
+                                    {/* 3 Category accordions */}
+                                    {navTree.map(cat => {
+                                        const active = isCatActive(cat);
+                                        const isOpen = openMobileAccordion === cat.label;
+
                                         return (
-                                            <Link
-                                                key={href} href={href}
-                                                className="font-bangla flex items-center gap-3 px-4 py-3 rounded-lg text-[15px] font-semibold transition-all"
-                                                style={{
-                                                    background: active ? `${MAROON}0D` : 'transparent',
-                                                    color: active ? MAROON : DEEP,
-                                                    borderLeft: active ? `3px solid ${GOLD}` : '3px solid transparent',
-                                                }}
-                                            >
-                                                <span>{icon}</span>
-                                                {label}
-                                                {active && <span className="ml-auto text-xs" style={{ color: GOLD }}>◆</span>}
-                                            </Link>
+                                            <div key={cat.label}>
+                                                <div className="flex items-center gap-1">
+                                                    <Link
+                                                        href={cat.href}
+                                                        className="font-bangla flex-1 flex items-center gap-3 px-4 py-3 rounded-lg text-[15px] font-semibold transition-all"
+                                                        style={{
+                                                            background: active ? `${MAROON}0D` : 'transparent',
+                                                            color:      active ? MAROON : DEEP,
+                                                            borderLeft: active ? `3px solid ${GOLD}` : '3px solid transparent',
+                                                        }}
+                                                    >
+                                                        <span>{cat.icon}</span>
+                                                        {cat.label}
+                                                        {active && <span className="ml-auto text-xs mr-1" style={{ color: GOLD }}>◆</span>}
+                                                    </Link>
+                                                    {cat.children.length > 0 && (
+                                                        <button
+                                                            onClick={() => setOpenMobileAccordion(isOpen ? null : cat.label)}
+                                                            className="p-2 rounded-lg transition-colors mr-1"
+                                                            style={{ color: isOpen ? MAROON : '#5a3e2b80' }}
+                                                        >
+                                                            <FiChevronDown
+                                                                size={15}
+                                                                style={{ transition: 'transform 0.2s', transform: isOpen ? 'rotate(180deg)' : 'none' }}
+                                                            />
+                                                        </button>
+                                                    )}
+                                                </div>
+
+                                                <AnimatePresence>
+                                                    {isOpen && cat.children.length > 0 && (
+                                                        <motion.div
+                                                            initial={{ height: 0, opacity: 0 }}
+                                                            animate={{ height: 'auto', opacity: 1 }}
+                                                            exit={{ height: 0, opacity: 0 }}
+                                                            transition={{ duration: 0.2 }}
+                                                            className="overflow-hidden ml-4 border-l-2 pl-3"
+                                                            style={{ borderColor: `${GOLD}40` }}
+                                                        >
+                                                            {cat.children.map((child: any) => (
+                                                                <Link
+                                                                    key={child._id}
+                                                                    href={`/category/${child.slug}`}
+                                                                    className="font-bangla flex items-center gap-2 px-3 py-2.5 rounded-lg text-[13px] transition-all hover:bg-[#6B0F1A08]"
+                                                                    style={{ color: pathname === `/category/${child.slug}` ? MAROON : '#5a3e2b' }}
+                                                                >
+                                                                    <span className="w-1 h-1 rounded-full shrink-0" style={{ background: GOLD + '80' }} />
+                                                                    {child.name}
+                                                                </Link>
+                                                            ))}
+                                                        </motion.div>
+                                                    )}
+                                                </AnimatePresence>
+                                            </div>
                                         );
                                     })}
+
+                                    {/* যোগাযোগ */}
+                                    <Link
+                                        href="/contact"
+                                        className="font-bangla flex items-center gap-3 px-4 py-3 rounded-lg text-[15px] font-semibold transition-all"
+                                        style={{
+                                            background:  isContactActive ? `${MAROON}0D` : 'transparent',
+                                            color:       isContactActive ? MAROON : DEEP,
+                                            borderLeft:  isContactActive ? `3px solid ${GOLD}` : '3px solid transparent',
+                                        }}
+                                    >
+                                        <span>📞</span> যোগাযোগ
+                                        {isContactActive && <span className="ml-auto text-xs" style={{ color: GOLD }}>◆</span>}
+                                    </Link>
                                 </nav>
 
                                 <MotifDivider />
@@ -501,13 +698,16 @@ const HeaderInner: React.FC = () => {
                                 <p className="font-bangla text-[10px] font-bold uppercase tracking-widest mb-3 px-2" style={{ color: `${MAROON}60` }}>আমার অ্যাকাউন্ট</p>
                                 <div className="flex flex-col gap-0.5">
                                     {[
-                                        { href: '/dashboard/user',          icon: <FiUser size={16} />,         label: 'আমার অ্যাকাউন্ট' },
-                                        { href: '/dashboard/user/wishlist', icon: <FiHeart size={16} />,        label: 'উইশলিস্ট' },
-                                        { href: '/cart',                    icon: <FiShoppingCart size={16} />,  label: 'আমার কার্ট', badge: cartItems.length },
+                                        { href: '/dashboard/user',          icon: <FiUser size={16} />,        label: 'আমার অ্যাকাউন্ট' },
+                                        { href: '/dashboard/user/wishlist', icon: <FiHeart size={16} />,       label: 'উইশলিস্ট' },
+                                        { href: '/cart',                    icon: <FiShoppingCart size={16} />, label: 'আমার কার্ট', badge: cartItems.length },
                                     ].map(item => (
-                                        <Link key={item.href} href={item.href}
-                                              className="font-bangla flex items-center gap-3 px-4 py-3 rounded-lg text-[14px] transition-all hover:bg-[#6B0F1A08]"
-                                              style={{ color: DEEP }}>
+                                        <Link
+                                            key={item.href}
+                                            href={item.href}
+                                            className="font-bangla flex items-center gap-3 px-4 py-3 rounded-lg text-[14px] transition-all hover:bg-[#6B0F1A08]"
+                                            style={{ color: DEEP }}
+                                        >
                                             <span style={{ color: MAROON }}>{item.icon}</span>
                                             {item.label}
                                             {item.badge ? (
@@ -520,14 +720,18 @@ const HeaderInner: React.FC = () => {
                                 </div>
                             </div>
 
-                            {/* Footer */}
+                            {/* Drawer footer */}
                             <div className="px-5 py-4" style={{ background: DEEP }}>
                                 <div className="flex items-center justify-center gap-3 mb-2">
                                     {[FaFacebookF, FaWhatsapp, FaYoutube].map((Icon, i) => (
-                                        <a key={i} href="#" className="w-8 h-8 rounded-full flex items-center justify-center transition-colors"
-                                           style={{ border: `1px solid ${GOLD}35`, color: `${GOLD}70` }}
-                                           onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = GOLD; (e.currentTarget as HTMLElement).style.borderColor = GOLD; }}
-                                           onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = `${GOLD}70`; (e.currentTarget as HTMLElement).style.borderColor = `${GOLD}35`; }}>
+                                        <a
+                                            key={i}
+                                            href="#"
+                                            className="w-8 h-8 rounded-full flex items-center justify-center transition-colors"
+                                            style={{ border: `1px solid ${GOLD}35`, color: `${GOLD}70` }}
+                                            onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = GOLD; (e.currentTarget as HTMLElement).style.borderColor = GOLD; }}
+                                            onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = `${GOLD}70`; (e.currentTarget as HTMLElement).style.borderColor = `${GOLD}35`; }}
+                                        >
                                             <Icon size={13} />
                                         </a>
                                     ))}
@@ -571,10 +775,12 @@ const HeaderInner: React.FC = () => {
                                     onDragOver={handleDragOver} onDragLeave={handleDragLeave} onDrop={handleDrop}
                                     onClick={() => fileInputRef.current?.click()}
                                     className="cursor-pointer p-10 text-center transition-all rounded-lg"
-                                    style={{ border: `2px dashed ${isDragging ? GOLD : '#d4c9b8'}`, background: isDragging ? `${GOLD}08` : `${SOFT_BG}` }}
+                                    style={{ border: `2px dashed ${isDragging ? GOLD : '#d4c9b8'}`, background: isDragging ? `${GOLD}08` : SOFT_BG }}
                                 >
-                                    <div className="w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-4 transition-colors"
-                                         style={{ background: isDragging ? `${GOLD}15` : `${MAROON}10`, color: isDragging ? GOLD : MAROON }}>
+                                    <div
+                                        className="w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-4 transition-colors"
+                                        style={{ background: isDragging ? `${GOLD}15` : `${MAROON}10`, color: isDragging ? GOLD : MAROON }}
+                                    >
                                         <FiUpload size={24} />
                                     </div>
                                     <p className="font-bangla font-semibold mb-1" style={{ color: DEEP }}>এখানে ছবি টেনে আনুন</p>
