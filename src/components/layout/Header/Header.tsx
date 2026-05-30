@@ -350,16 +350,14 @@ const HeaderInner: React.FC = () => {
                                                 onMouseLeave={e => { if (!active) navHoverOff(e); }}
                                             >
                                                 <span>{cat.label}</span>
-                                                {cat.children.length > 0 && (
-                                                    <FiChevronDown
-                                                        size={13}
-                                                        style={{
-                                                            color:      active ? MAROON : '#5a3e2b80',
-                                                            transition: 'transform 0.2s',
-                                                            transform:  openDropdown === cat.label ? 'rotate(180deg)' : 'none',
-                                                        }}
-                                                    />
-                                                )}
+                                                <FiChevronDown
+                                                    size={13}
+                                                    style={{
+                                                        color:      active ? MAROON : '#5a3e2b80',
+                                                        transition: 'transform 0.2s',
+                                                        transform:  openDropdown === cat.label ? 'rotate(180deg)' : 'none',
+                                                    }}
+                                                />
                                                 {active && (
                                                     <span className="absolute bottom-1 left-4 right-4 h-0.5 rounded-full" style={{ background: `linear-gradient(to right, ${MAROON}, ${GOLD})` }} />
                                                 )}
@@ -636,18 +634,16 @@ const HeaderInner: React.FC = () => {
                                                         {cat.label}
                                                         {active && <span className="ml-auto text-xs mr-1" style={{ color: GOLD }}>◆</span>}
                                                     </Link>
-                                                    {cat.children.length > 0 && (
-                                                        <button
-                                                            onClick={() => setOpenMobileAccordion(isOpen ? null : cat.label)}
-                                                            className="p-2 rounded-lg transition-colors mr-1"
-                                                            style={{ color: isOpen ? MAROON : '#5a3e2b80' }}
-                                                        >
-                                                            <FiChevronDown
-                                                                size={15}
-                                                                style={{ transition: 'transform 0.2s', transform: isOpen ? 'rotate(180deg)' : 'none' }}
-                                                            />
-                                                        </button>
-                                                    )}
+                                                    <button
+                                                        onClick={() => setOpenMobileAccordion(isOpen ? null : cat.label)}
+                                                        className="p-2 rounded-lg transition-colors mr-1"
+                                                        style={{ color: isOpen ? MAROON : '#5a3e2b80' }}
+                                                    >
+                                                        <FiChevronDown
+                                                            size={15}
+                                                            style={{ transition: 'transform 0.2s', transform: isOpen ? 'rotate(180deg)' : 'none' }}
+                                                        />
+                                                    </button>
                                                 </div>
 
                                                 <AnimatePresence>
