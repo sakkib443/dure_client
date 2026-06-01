@@ -2,6 +2,7 @@
 
 import React, { useState, useRef, useCallback, useEffect, useMemo, Suspense } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
 import {
     FiShoppingCart, FiSearch, FiX, FiUpload, FiUser, FiHeart,
@@ -96,33 +97,17 @@ const MotifDivider = () => (
     </div>
 );
 
-function BanglaLogo({ small, light }: { small?: boolean; light?: boolean }) {
-    const textColor = light ? CREAM : DEEP;
-    const subColor  = light ? `${GOLD}CC` : `${MAROON}AA`;
+function BanglaLogo({ small }: { small?: boolean; light?: boolean }) {
     return (
-        <Link href="/" className="select-none flex items-center gap-2.5 group">
-            <div
-                className="flex items-center justify-center rounded-full shrink-0 transition-transform duration-300 group-hover:scale-105"
-                style={{
-                    width:  small ? 34 : 42,
-                    height: small ? 34 : 42,
-                    background: `linear-gradient(135deg, ${MAROON}, ${MAROON}DD)`,
-                    boxShadow: `0 2px 8px ${MAROON}30`,
-                    border: `2px solid ${GOLD}60`,
-                }}
-            >
-                <span className="font-display font-black" style={{ color: GOLD, fontSize: small ? '1rem' : '1.3rem', lineHeight: 1 }}>জ</span>
-            </div>
-            <div className="flex flex-col">
-                <span className="font-display font-black leading-none tracking-tight" style={{ fontSize: small ? '1.2rem' : '1.5rem', color: textColor }}>
-                    ঝামদানি
-                </span>
-                {!small && (
-                    <span className="font-bangla leading-none mt-0.5" style={{ fontSize: '0.55rem', color: subColor, letterSpacing: '0.08em' }}>
-                        ঐতিহ্যের শ্রেষ্ঠ সংগ্রহ
-                    </span>
-                )}
-            </div>
+        <Link href="/" className="select-none flex items-center group">
+            <Image
+                src="/logooo.png"
+                alt="Dure Logo"
+                width={small ? 90 : 120}
+                height={small ? 36 : 48}
+                className="object-contain transition-transform duration-300 group-hover:scale-105"
+                priority
+            />
         </Link>
     );
 }
