@@ -103,8 +103,8 @@ function BanglaLogo({ small }: { small?: boolean; light?: boolean }) {
             <Image
                 src="/logooo.png"
                 alt="Dure Logo"
-                width={small ? 90 : 120}
-                height={small ? 36 : 48}
+                width={small ? 44 : 95}
+                height={small ? 18 : 38}
                 className="object-contain transition-transform duration-300 group-hover:scale-105"
                 priority
             />

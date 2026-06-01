@@ -94,7 +94,7 @@ const Preloader: React.FC = () => {
                                 <line x1="4" y1="28" x2="52" y2="28" stroke="rgba(0,0,0,0.08)" strokeWidth="0.6"/>
                                 <line x1="8" y1="16" x2="48" y2="16" stroke="rgba(0,0,0,0.05)" strokeWidth="0.5"/>
                                 <line x1="8" y1="40" x2="48" y2="40" stroke="rgba(0,0,0,0.05)" strokeWidth="0.5"/>
-                                <text x="28" y="36" textAnchor="middle" fontFamily="'Segoe UI', Arial" fontWeight="800" fontSize="28" fill="#1a1a1a" opacity="0.95">J</text>
+                                <text x="28" y="36" textAnchor="middle" fontFamily="'Segoe UI', Arial" fontWeight="800" fontSize="28" fill="#1a1a1a" opacity="0.95">D</text>
                             </svg>
                         </div>
                     </div>
@@ -108,12 +108,12 @@ const Preloader: React.FC = () => {
                 {/* Brand Text */}
                 <div className="text-center" style={{ animation: 'preloaderFadeUp 0.8s ease-out 0.3s both' }}>
                     <h1 className="text-3xl sm:text-4xl font-extrabold text-gray-900 tracking-[0.15em] uppercase">
-                        CHUTLI
+                        DURE
                     </h1>
-                    <div className="mt-1.5 h-[1.5px] bg-gradient-to-r from-transparent via-[#800000]/50 to-transparent" style={{ animation: 'preloaderLineExpand 1s ease-out 0.6s both' }} />
-                    <p className="mt-2.5 text-[#800000]/60 text-[11px] tracking-[0.4em] uppercase font-medium" style={{ animation: 'preloaderFadeUp 0.8s ease-out 0.8s both' }}>
-                        Your Premium Fashion Destination
+                    <p className="mt-1 text-xl sm:text-2xl font-bold text-gray-800" style={{ fontFamily: 'var(--font-bangla, serif)', letterSpacing: '0.05em' }}>
+                        ডুরি
                     </p>
+                    <div className="mt-1.5 h-[1.5px] bg-gradient-to-r from-transparent via-[#800000]/50 to-transparent" style={{ animation: 'preloaderLineExpand 1s ease-out 0.6s both' }} />
                 </div>
 
                 {/* Progress */}
