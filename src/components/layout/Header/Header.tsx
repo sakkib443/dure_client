@@ -136,10 +136,12 @@ const HeaderInner: React.FC = () => {
             .sort(byOrder);
 
         return roots.map(root => {
+            // Show ALL active sub-categories of a visible root in its dropdown
+            // (a sub-category's own showInMenu does not gate it here).
             const children = navCategories
                 .filter(c => {
                     const pid = c.parent?._id || c.parent;
-                    return pid === root._id && c.isActive !== false && c.showInMenu !== false;
+                    return pid === root._id && c.isActive !== false;
                 })
                 .sort(byOrder);
 

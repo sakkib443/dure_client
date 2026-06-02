@@ -24,7 +24,7 @@ const emptyForm = {
     order: 0,
     description: '',
     isActive: true,
-    showInMenu: true,
+    showInMenu: false,   // default OFF — admin turns it on to add to the header menu
     showInHome: true,
 };
 
@@ -169,7 +169,7 @@ const CategoriesPage = () => {
                         }}>
                             {cat.isActive ? 'Active' : 'Inactive'}
                         </span>
-                        {cat.showInMenu && (
+                        {cat.showInMenu && !isChild && (
                             <span style={{
                                 fontSize: '9px', fontWeight: 700, padding: '1px 6px', borderRadius: '999px',
                                 background: '#fff7ed', color: '#c2410c',
@@ -431,7 +431,9 @@ const CategoriesPage = () => {
                                     </label>
                                 ))}
                                 <p style={{ fontSize: '11px', color: '#999', margin: '2px 0 0' }}>
-                                    “Show in Header Menu” controls whether this {form.parent ? 'sub-category appears in its parent\'s dropdown' : 'category appears in the site header'}.
+                                    {form.parent
+                                        ? 'Sub-categories always show in their parent\'s dropdown when the parent is in the menu — this toggle is only needed for top-level categories.'
+                                        : 'Turn ON to show this category in the site header menu. (Off by default.)'}
                                 </p>
                             </div>
                         </div>
