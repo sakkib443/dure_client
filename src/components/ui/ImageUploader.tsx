@@ -24,6 +24,7 @@ export function SingleImageUploader({
 }) {
     const [uploadImage, { isLoading }] = useUploadImageMutation();
     const [error, setError] = useState('');
+    const [urlInput, setUrlInput] = useState('');
     const ref = useRef<HTMLInputElement>(null);
 
     const handleFile = async (file: File) => {
@@ -44,6 +45,14 @@ export function SingleImageUploader({
         e.preventDefault();
         const file = e.dataTransfer.files?.[0];
         if (file) handleFile(file);
+    };
+
+    const applyUrl = () => {
+        const u = urlInput.trim();
+        if (!u) return;
+        onChange(u);
+        setUrlInput('');
+        setError('');
     };
 
     return (
@@ -91,6 +100,20 @@ export function SingleImageUploader({
                 )}
             </div>
 
+            {/* OR paste image URL */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '8px' }}>
+                <span style={{ fontSize: '11px', color: '#9ca3af', whiteSpace: 'nowrap' }}>অথবা লিংক</span>
+                <input
+                    type="url"
+                    value={urlInput}
+                    onChange={e => setUrlInput(e.target.value)}
+                    onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); applyUrl(); } }}
+                    placeholder="image link পেস্ট করুন (https://...)"
+                    style={{ flex: 1, padding: '8px 11px', border: '1.5px solid #e5e7eb', borderRadius: '8px', fontSize: '12.5px', outline: 'none', boxSizing: 'border-box', background: '#fff' }}
+                />
+                <button type="button" onClick={applyUrl} disabled={!urlInput.trim()} style={{ padding: '8px 14px', background: urlInput.trim() ? 'var(--color-primary)' : '#d1d5db', color: '#fff', border: 'none', borderRadius: '8px', fontSize: '12.5px', fontWeight: 600, cursor: urlInput.trim() ? 'pointer' : 'not-allowed', whiteSpace: 'nowrap' }}>Use</button>
+            </div>
+
             {error && <p style={{ fontSize: '11.5px', color: '#ef4444', margin: '4px 0 0', fontWeight: 500 }}>{error}</p>}
             <input ref={ref} type="file" accept="image/*" style={{ display: 'none' }} onChange={e => { const f = e.target.files?.[0]; if (f) handleFile(f); e.target.value = ''; }} />
         </div>
@@ -116,6 +139,7 @@ export function MultipleImageUploader({
 }) {
     const [uploadImages, { isLoading }] = useUploadImagesMutation();
     const [error, setError] = useState('');
+    const [urlInput, setUrlInput] = useState('');
     const ref = useRef<HTMLInputElement>(null);
 
     const handleFiles = async (files: FileList) => {
@@ -136,6 +160,15 @@ export function MultipleImageUploader({
     };
 
     const removeImage = (i: number) => onChange(values.filter((_, j) => j !== i));
+
+    const addUrl = () => {
+        const u = urlInput.trim();
+        if (!u) return;
+        if (values.length >= max) { setError(`Maximum ${max} images allowed`); return; }
+        onChange([...values, u]);
+        setUrlInput('');
+        setError('');
+    };
 
     return (
         <div>
@@ -184,6 +217,22 @@ export function MultipleImageUploader({
                             <span style={{ fontSize: '11px', color: '#9ca3af' }}>Up to {max} images — max 10MB each</span>
                         </div>
                     )}
+                </div>
+            )}
+
+            {/* OR paste image URL */}
+            {values.length < max && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '8px' }}>
+                    <span style={{ fontSize: '11px', color: '#9ca3af', whiteSpace: 'nowrap' }}>অথবা লিংক</span>
+                    <input
+                        type="url"
+                        value={urlInput}
+                        onChange={e => setUrlInput(e.target.value)}
+                        onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); addUrl(); } }}
+                        placeholder="image link পেস্ট করুন (https://...)"
+                        style={{ flex: 1, padding: '8px 11px', border: '1.5px solid #e5e7eb', borderRadius: '8px', fontSize: '12.5px', outline: 'none', boxSizing: 'border-box', background: '#fff' }}
+                    />
+                    <button type="button" onClick={addUrl} disabled={!urlInput.trim()} style={{ padding: '8px 14px', background: urlInput.trim() ? 'var(--color-primary)' : '#d1d5db', color: '#fff', border: 'none', borderRadius: '8px', fontSize: '12.5px', fontWeight: 600, cursor: urlInput.trim() ? 'pointer' : 'not-allowed', whiteSpace: 'nowrap' }}>Add</button>
                 </div>
             )}
 
