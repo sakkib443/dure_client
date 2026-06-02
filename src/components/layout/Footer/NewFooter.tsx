@@ -2,6 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { useAppSelector, useAppDispatch } from '@/redux';
 import { logout } from '@/redux/slices/authSlice';
@@ -60,12 +61,15 @@ const NewFooter: React.FC = () => {
 
                     {/* Brand */}
                     <div className="lg:col-span-1">
-                        <div className="flex items-center gap-2 mb-4">
-                            <div className="w-9 h-9 rounded-lg bg-[var(--color-primary)] text-white font-black flex items-center justify-center text-sm">
-                                জ
-                            </div>
-                            <span className="text-xl font-extrabold tracking-tight text-gray-900">Jhamdani</span>
-                        </div>
+                        <Link href="/" className="inline-flex items-center mb-4 select-none">
+                            <Image
+                                src="/logooo.png"
+                                alt="Dure Logo"
+                                width={120}
+                                height={48}
+                                className="object-contain"
+                            />
+                        </Link>
                         <p className="font-bangla text-sm text-gray-600 leading-relaxed mb-4">
                             বাংলাদেশের সেরা জামদানি শাড়ি, ঐতিহ্যবাহী পোশাক ও অলংকার — ঐতিহ্য ও ভালোবাসায় তৈরি।
                         </p>
@@ -146,7 +150,7 @@ const NewFooter: React.FC = () => {
                 <div className="container mx-auto px-4 py-4">
                     <div className="flex flex-col sm:flex-row items-center justify-between gap-2">
                         <p className="font-bangla text-xs text-gray-500">
-                            © {new Date().getFullYear()} ঝামদানি। সর্বস্বত্ব সংরক্ষিত।
+                            © {new Date().getFullYear()} DURE ডুরি। সর্বস্বত্ব সংরক্ষিত।
                         </p>
                         <div className="flex items-center gap-3 flex-wrap justify-center">
                             {POLICIES.map(({ label, href }, i) => (

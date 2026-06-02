@@ -1,11 +1,11 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
-    FiPlus, FiEdit2, FiTrash2, FiSearch, FiX, FiSave, FiGrid,
+    FiPlus, FiEdit2, FiTrash2, FiSearch, FiX, FiSave, FiGrid, FiCornerDownRight,
 } from 'react-icons/fi';
 import {
-    useGetCategoriesQuery,
+    useGetAdminCategoriesQuery,
     useDeleteCategoryMutation,
     useCreateCategoryMutation,
     useUpdateCategoryMutation,
@@ -16,9 +16,21 @@ import { toast } from 'react-hot-toast';
 const inp: React.CSSProperties = { width: '100%', padding: '9px 12px', border: '1.5px solid #e5e7eb', borderRadius: '7px', fontSize: '13px', outline: 'none', boxSizing: 'border-box' };
 const lbl: React.CSSProperties = { fontSize: '12px', fontWeight: 600, color: '#555', display: 'block', marginBottom: '5px' };
 
+const emptyForm = {
+    name: '',
+    slug: '',            // optional — auto-generated on the server when empty
+    parent: '',          // '' = top-level (root) category
+    icon: '',
+    order: 0,
+    description: '',
+    isActive: true,
+    showInMenu: true,
+    showInHome: true,
+};
+
 const CategoriesPage = () => {
     const [searchTerm, setSearchTerm] = useState('');
-    const { data: categoriesData, isLoading, refetch } = useGetCategoriesQuery({});
+    const { data: categoriesData, isLoading } = useGetAdminCategoriesQuery(undefined);
     const [deleteCategory] = useDeleteCategoryMutation();
     const [createCategory, { isLoading: isCreating }] = useCreateCategoryMutation();
     const [updateCategory, { isLoading: isUpdating }] = useUpdateCategoryMutation();
@@ -26,14 +38,42 @@ const CategoriesPage = () => {
     /* ─── Modal State ─── */
     const [modalOpen, setModalOpen] = useState(false);
     const [editingId, setEditingId] = useState<string | null>(null);
-    const [form, setForm] = useState({ name: '', description: '', isActive: true, showInMenu: true, showInHome: true });
+    const [form, setForm] = useState({ ...emptyForm });
 
-    const categories = categoriesData?.data || [];
+    const categories: any[] = categoriesData?.data || [];
     const isSaving = isCreating || isUpdating;
 
-    const openCreate = () => {
+    /* Helper: id of a category's parent regardless of populated/raw */
+    const parentId = (c: any) => (c?.parent?._id || c?.parent || '');
+
+    /* Only root categories can be a parent (keeps menu to 2 levels) */
+    const rootCategories = useMemo(
+        () => categories.filter(c => !parentId(c)),
+        [categories]
+    );
+
+    /* ─── Build hierarchical, search-filtered list ─── */
+    const tree = useMemo(() => {
+        const q = searchTerm.trim().toLowerCase();
+        const match = (c: any) => !q || (c.name || '').toLowerCase().includes(q);
+
+        return rootCategories
+            .map(root => {
+                const children = categories
+                    .filter(c => parentId(c) === root._id)
+                    .sort((a, b) => (a.order || 0) - (b.order || 0) || a.name.localeCompare(b.name));
+                const visibleChildren = children.filter(match);
+                const show = match(root) || visibleChildren.length > 0;
+                // when searching, only show children that match; otherwise show all
+                return { root, children: q ? visibleChildren : children, show };
+            })
+            .filter(r => r.show)
+            .sort((a, b) => (a.root.order || 0) - (b.root.order || 0) || a.root.name.localeCompare(b.root.name));
+    }, [categories, rootCategories, searchTerm]);
+
+    const openCreate = (presetParent = '') => {
         setEditingId(null);
-        setForm({ name: '', description: '', isActive: true, showInMenu: true, showInHome: true });
+        setForm({ ...emptyForm, parent: presetParent });
         setModalOpen(true);
     };
 
@@ -41,6 +81,10 @@ const CategoriesPage = () => {
         setEditingId(cat._id);
         setForm({
             name: cat.name || '',
+            slug: cat.slug || '',
+            parent: parentId(cat),
+            icon: cat.icon || '',
+            order: cat.order || 0,
             description: cat.description || '',
             isActive: cat.isActive !== false,
             showInMenu: cat.showInMenu !== false,
@@ -53,13 +97,28 @@ const CategoriesPage = () => {
 
     const handleSave = async () => {
         if (!form.name.trim()) { toast.error('Category name is required'); return; }
+        // A category cannot be its own parent
+        if (editingId && form.parent === editingId) { toast.error('A category cannot be its own parent'); return; }
+
+        const payload = {
+            name: form.name.trim(),
+            slug: form.slug.trim(),
+            parent: form.parent || null,
+            icon: form.icon.trim(),
+            order: Number(form.order) || 0,
+            description: form.description,
+            isActive: form.isActive,
+            showInMenu: form.showInMenu,
+            showInHome: form.showInHome,
+        };
+
         try {
             if (editingId) {
-                await updateCategory({ id: editingId, data: form }).unwrap();
+                await updateCategory({ id: editingId, data: payload }).unwrap();
                 toast.success('Category updated');
             } else {
-                await createCategory(form).unwrap();
-                toast.success('Category created');
+                await createCategory(payload).unwrap();
+                toast.success(form.parent ? 'Sub-category created' : 'Category created');
             }
             closeModal();
         } catch (error: any) {
@@ -78,8 +137,85 @@ const CategoriesPage = () => {
         }
     };
 
-    const filtered = categories.filter((cat: any) =>
-        cat.name.toLowerCase().includes(searchTerm.toLowerCase())
+    /* ─── Row renderer (shared by roots & children) ─── */
+    const renderRow = (cat: any, isChild = false) => (
+        <div key={cat._id} style={{
+            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+            padding: isChild ? '10px 16px 10px 44px' : '12px 16px',
+            borderBottom: '1px solid #f5f5f5',
+            background: isChild ? '#fcfcfc' : '#fff',
+            transition: 'background 0.15s',
+        }}
+            onMouseEnter={e => e.currentTarget.style.background = isChild ? '#f7f7f7' : '#fafafa'}
+            onMouseLeave={e => e.currentTarget.style.background = isChild ? '#fcfcfc' : '#fff'}
+        >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', minWidth: 0 }}>
+                {isChild && <FiCornerDownRight size={14} color="#ccc" style={{ flexShrink: 0 }} />}
+                <div style={{
+                    width: isChild ? '30px' : '36px', height: isChild ? '30px' : '36px', borderRadius: '8px',
+                    background: '#f5f5f5', display: 'flex', alignItems: 'center',
+                    justifyContent: 'center', flexShrink: 0, fontSize: '16px',
+                }}>
+                    {cat.icon ? <span>{cat.icon}</span> : <FiGrid size={isChild ? 14 : 16} color="#bbb" />}
+                </div>
+                <div style={{ minWidth: 0 }}>
+                    <p style={{ fontSize: '13px', fontWeight: 700, color: '#111', margin: 0 }}>{cat.name}</p>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '2px', flexWrap: 'wrap' }}>
+                        <span style={{ fontSize: '10.5px', color: '#aaa', fontFamily: 'monospace' }}>{cat.slug}</span>
+                        <span style={{
+                            fontSize: '9px', fontWeight: 700, padding: '1px 6px', borderRadius: '999px',
+                            background: cat.isActive ? 'var(--color-primary-lightest)' : '#fef2f2',
+                            color: cat.isActive ? '#16a34a' : '#dc2626',
+                        }}>
+                            {cat.isActive ? 'Active' : 'Inactive'}
+                        </span>
+                        {cat.showInMenu && (
+                            <span style={{
+                                fontSize: '9px', fontWeight: 700, padding: '1px 6px', borderRadius: '999px',
+                                background: '#fff7ed', color: '#c2410c',
+                            }}>
+                                In Menu
+                            </span>
+                        )}
+                        <span style={{ fontSize: '10px', color: '#ccc' }}>{cat.productCount || 0} products</span>
+                    </div>
+                </div>
+            </div>
+            <div style={{ display: 'flex', gap: '4px', flexShrink: 0 }}>
+                {!isChild && (
+                    <button onClick={() => openCreate(cat._id)} title="Add sub-category" style={{
+                        width: '30px', height: '30px', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        background: 'transparent', border: '1px solid transparent', borderRadius: '6px',
+                        cursor: 'pointer', color: '#16a34a', transition: 'all 0.15s',
+                    }}
+                        onMouseEnter={e => { e.currentTarget.style.background = '#f0fdf4'; e.currentTarget.style.borderColor = '#e5e7eb'; }}
+                        onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.borderColor = 'transparent'; }}
+                    >
+                        <FiPlus size={15} />
+                    </button>
+                )}
+                <button onClick={() => openEdit(cat)} title="Edit" style={{
+                    width: '30px', height: '30px', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    background: 'transparent', border: '1px solid transparent', borderRadius: '6px',
+                    cursor: 'pointer', color: 'var(--color-primary)', transition: 'all 0.15s',
+                }}
+                    onMouseEnter={e => { e.currentTarget.style.background = 'var(--color-primary-lightest)'; e.currentTarget.style.borderColor = '#e5e7eb'; }}
+                    onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.borderColor = 'transparent'; }}
+                >
+                    <FiEdit2 size={14} />
+                </button>
+                <button onClick={() => handleDelete(cat._id)} title="Delete" style={{
+                    width: '30px', height: '30px', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    background: 'transparent', border: '1px solid transparent', borderRadius: '6px',
+                    cursor: 'pointer', color: '#dc2626', transition: 'all 0.15s',
+                }}
+                    onMouseEnter={e => { e.currentTarget.style.background = '#fef2f2'; e.currentTarget.style.borderColor = '#e5e7eb'; }}
+                    onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.borderColor = 'transparent'; }}
+                >
+                    <FiTrash2 size={14} />
+                </button>
+            </div>
+        </div>
     );
 
     return (
@@ -88,9 +224,9 @@ const CategoriesPage = () => {
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
                 <div>
                     <h1 style={{ fontSize: '18px', fontWeight: 800, color: '#111', margin: 0 }}>Categories</h1>
-                    <p style={{ fontSize: '12px', color: '#888', margin: '2px 0 0' }}>Manage product categories</p>
+                    <p style={{ fontSize: '12px', color: '#888', margin: '2px 0 0' }}>Manage categories, sub-categories &amp; the header menu</p>
                 </div>
-                <button onClick={openCreate} style={{
+                <button onClick={() => openCreate()} style={{
                     display: 'flex', alignItems: 'center', gap: '6px',
                     padding: '8px 16px', background: 'var(--color-primary)', color: '#fff',
                     border: 'none', borderRadius: '7px', fontSize: '12.5px', fontWeight: 700,
@@ -118,64 +254,12 @@ const CategoriesPage = () => {
                     <div style={{ padding: '40px', textAlign: 'center' }}>
                         <div style={{ width: '28px', height: '28px', border: '3px solid #e5e7eb', borderTopColor: 'var(--color-primary)', borderRadius: '50%', animation: 'spin 0.8s linear infinite', margin: '0 auto' }} />
                     </div>
-                ) : filtered.length > 0 ? (
+                ) : tree.length > 0 ? (
                     <div>
-                        {filtered.map((cat: any, i: number) => (
-                            <div key={cat._id} style={{
-                                display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                                padding: '12px 16px',
-                                borderBottom: i < filtered.length - 1 ? '1px solid #f5f5f5' : 'none',
-                                transition: 'background 0.15s',
-                            }}
-                                onMouseEnter={e => e.currentTarget.style.background = '#fafafa'}
-                                onMouseLeave={e => e.currentTarget.style.background = '#fff'}
-                            >
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                                    <div style={{
-                                        width: '36px', height: '36px', borderRadius: '8px',
-                                        background: '#f5f5f5', display: 'flex', alignItems: 'center',
-                                        justifyContent: 'center', flexShrink: 0,
-                                    }}>
-                                        <FiGrid size={16} color="#bbb" />
-                                    </div>
-                                    <div>
-                                        <p style={{ fontSize: '13px', fontWeight: 700, color: '#111', margin: 0 }}>{cat.name}</p>
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '2px' }}>
-                                            <span style={{ fontSize: '10.5px', color: '#aaa', fontFamily: 'monospace' }}>{cat.slug}</span>
-                                            <span style={{
-                                                fontSize: '9px', fontWeight: 700,
-                                                padding: '1px 6px', borderRadius: '999px',
-                                                background: cat.isActive ? 'var(--color-primary-lightest)' : '#fef2f2',
-                                                color: cat.isActive ? '#16a34a' : '#dc2626',
-                                            }}>
-                                                {cat.isActive ? 'Active' : 'Inactive'}
-                                            </span>
-                                            <span style={{ fontSize: '10px', color: '#ccc' }}>{cat.productCount || 0} products</span>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div style={{ display: 'flex', gap: '4px' }}>
-                                    <button onClick={() => openEdit(cat)} style={{
-                                        width: '30px', height: '30px', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                        background: 'transparent', border: '1px solid transparent', borderRadius: '6px',
-                                        cursor: 'pointer', color: 'var(--color-primary)', transition: 'all 0.15s',
-                                    }}
-                                        onMouseEnter={e => { e.currentTarget.style.background = 'var(--color-primary-lightest)'; e.currentTarget.style.borderColor = '#e5e7eb'; }}
-                                        onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.borderColor = 'transparent'; }}
-                                    >
-                                        <FiEdit2 size={14} />
-                                    </button>
-                                    <button onClick={() => handleDelete(cat._id)} style={{
-                                        width: '30px', height: '30px', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                        background: 'transparent', border: '1px solid transparent', borderRadius: '6px',
-                                        cursor: 'pointer', color: '#dc2626', transition: 'all 0.15s',
-                                    }}
-                                        onMouseEnter={e => { e.currentTarget.style.background = '#fef2f2'; e.currentTarget.style.borderColor = '#e5e7eb'; }}
-                                        onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.borderColor = 'transparent'; }}
-                                    >
-                                        <FiTrash2 size={14} />
-                                    </button>
-                                </div>
+                        {tree.map(({ root, children }) => (
+                            <div key={root._id}>
+                                {renderRow(root)}
+                                {children.map((child: any) => renderRow(child, true))}
                             </div>
                         ))}
                     </div>
@@ -183,7 +267,7 @@ const CategoriesPage = () => {
                     <div style={{ padding: '40px', textAlign: 'center' }}>
                         <FiGrid size={28} color="#ddd" style={{ margin: '0 auto 10px' }} />
                         <p style={{ fontSize: '13px', color: '#aaa', margin: '0 0 12px' }}>No categories found</p>
-                        <button onClick={openCreate} style={{
+                        <button onClick={() => openCreate()} style={{
                             padding: '7px 16px', background: 'var(--color-primary)', color: '#fff',
                             border: 'none', borderRadius: '7px', fontSize: '12px', fontWeight: 700, cursor: 'pointer',
                         }}>
@@ -208,7 +292,8 @@ const CategoriesPage = () => {
                     {/* Modal */}
                     <div style={{
                         position: 'relative', background: '#fff',
-                        borderRadius: '12px', width: '420px', maxWidth: '90vw',
+                        borderRadius: '12px', width: '440px', maxWidth: '90vw',
+                        maxHeight: '90vh', overflowY: 'auto',
                         boxShadow: '0 20px 60px rgba(0,0,0,0.2)',
                         animation: 'fadeIn 0.2s ease-out',
                     }}>
@@ -216,9 +301,10 @@ const CategoriesPage = () => {
                         <div style={{
                             display: 'flex', justifyContent: 'space-between', alignItems: 'center',
                             padding: '16px 20px', borderBottom: '1px solid #f0f0f0',
+                            position: 'sticky', top: 0, background: '#fff', zIndex: 1,
                         }}>
                             <h3 style={{ fontSize: '15px', fontWeight: 800, color: '#111', margin: 0 }}>
-                                {editingId ? 'Edit Category' : 'Add Category'}
+                                {editingId ? 'Edit Category' : (form.parent ? 'Add Sub-category' : 'Add Category')}
                             </h3>
                             <button onClick={closeModal} style={{
                                 width: '28px', height: '28px', display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -235,12 +321,73 @@ const CategoriesPage = () => {
                                 <label style={lbl}>Category Name <span style={{ color: 'var(--color-secondary)' }}>*</span></label>
                                 <input
                                     type="text"
-                                    placeholder="e.g. Electronics, Fashion"
+                                    placeholder="e.g. জামদানি, অলংকার"
                                     value={form.name}
                                     onChange={e => setForm(p => ({ ...p, name: e.target.value }))}
                                     style={inp}
                                     autoFocus
                                 />
+                            </div>
+
+                            {/* Slug */}
+                            <div>
+                                <label style={lbl}>Slug / URL <span style={{ color: '#aaa', fontWeight: 400 }}>(optional)</span></label>
+                                <input
+                                    type="text"
+                                    placeholder="e.g. jamdani  (auto-generated if left blank)"
+                                    value={form.slug}
+                                    onChange={e => setForm(p => ({ ...p, slug: e.target.value }))}
+                                    style={inp}
+                                />
+                                <p style={{ fontSize: '11px', color: '#999', margin: '5px 0 0' }}>
+                                    Used in the URL: <code>/category/{form.slug.trim() || 'your-slug'}</code>. Use English letters for Bengali names.
+                                </p>
+                            </div>
+
+                            {/* Parent */}
+                            <div>
+                                <label style={lbl}>Parent Category</label>
+                                <select
+                                    value={form.parent}
+                                    onChange={e => setForm(p => ({ ...p, parent: e.target.value }))}
+                                    style={{ ...inp, cursor: 'pointer', background: '#fff' }}
+                                >
+                                    <option value="">— None (Top-level / Menu category) —</option>
+                                    {rootCategories
+                                        .filter(c => c._id !== editingId)
+                                        .map(c => (
+                                            <option key={c._id} value={c._id}>{c.name}</option>
+                                        ))}
+                                </select>
+                                <p style={{ fontSize: '11px', color: '#999', margin: '5px 0 0' }}>
+                                    {form.parent
+                                        ? 'This will be a sub-category — it appears inside its parent\'s dropdown in the header.'
+                                        : 'Top-level category — can be shown directly in the header menu.'}
+                                </p>
+                            </div>
+
+                            {/* Icon + Order */}
+                            <div style={{ display: 'flex', gap: '12px' }}>
+                                <div style={{ flex: 1 }}>
+                                    <label style={lbl}>Icon (emoji) <span style={{ color: '#aaa', fontWeight: 400 }}>(optional)</span></label>
+                                    <input
+                                        type="text"
+                                        placeholder="🥻"
+                                        value={form.icon}
+                                        onChange={e => setForm(p => ({ ...p, icon: e.target.value }))}
+                                        style={inp}
+                                        maxLength={4}
+                                    />
+                                </div>
+                                <div style={{ width: '110px' }}>
+                                    <label style={lbl}>Menu Order</label>
+                                    <input
+                                        type="number"
+                                        value={form.order}
+                                        onChange={e => setForm(p => ({ ...p, order: Number(e.target.value) }))}
+                                        style={inp}
+                                    />
+                                </div>
                             </div>
 
                             {/* Description */}
@@ -259,7 +406,7 @@ const CategoriesPage = () => {
                             <div style={{ borderTop: '1px solid #f0f0f0', paddingTop: '12px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
                                 {[
                                     { key: 'isActive', label: 'Active' },
-                                    { key: 'showInMenu', label: 'Show in Menu' },
+                                    { key: 'showInMenu', label: 'Show in Header Menu' },
                                     { key: 'showInHome', label: 'Show on Homepage' },
                                 ].map((toggle) => (
                                     <label key={toggle.key} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer' }}>
@@ -283,6 +430,9 @@ const CategoriesPage = () => {
                                         </div>
                                     </label>
                                 ))}
+                                <p style={{ fontSize: '11px', color: '#999', margin: '2px 0 0' }}>
+                                    “Show in Header Menu” controls whether this {form.parent ? 'sub-category appears in its parent\'s dropdown' : 'category appears in the site header'}.
+                                </p>
                             </div>
                         </div>
 
@@ -290,6 +440,7 @@ const CategoriesPage = () => {
                         <div style={{
                             display: 'flex', gap: '8px', padding: '14px 20px',
                             borderTop: '1px solid #f0f0f0',
+                            position: 'sticky', bottom: 0, background: '#fff',
                         }}>
                             <button onClick={closeModal} style={{
                                 flex: 1, padding: '9px', background: '#f5f5f5', color: '#666',

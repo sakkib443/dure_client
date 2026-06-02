@@ -21,32 +21,14 @@ const DEEP    = '#2D1008';
 const CREAM   = '#FDF6EC';
 const SOFT_BG = '#F5EDE0';
 
-/* ─── 3 fixed category menus ─────────────────────────────────────── */
-// mode 'children': find root by rootSlug, show its children in dropdown
-// mode 'siblings': show specific root categories directly in dropdown (no single root)
-const CATEGORY_MENU_DEFS = [
-    {
-        label:    'জামদানি',
-        icon:     '🥻',
-        rootSlug: 'jamdani',
-        href:     '/category/jamdani',
-        mode:     'children' as const,
-    },
-    {
-        label:    'অলংকার',
-        icon:     '💍',
-        rootSlug: 'ornaments',
-        href:     '/category/ornaments',
-        mode:     'children' as const,
-    },
-    {
-        label:    'জামা',
-        icon:     '👗',
-        rootSlug: 'jama',
-        href:     '/category/jama',
-        mode:     'children' as const,
-    },
-];
+/* ─── Dynamic category menus ──────────────────────────────────────
+   The header nav is built from the categories API:
+     • Any ROOT category (no parent) with showInMenu = true becomes a
+       top-level menu item, ordered by `order` then name.
+     • Its active children with showInMenu = true appear in the dropdown
+       as sub-categories.
+   Admins control all of this from /dashboard/admin/categories.        */
+const DEFAULT_MENU_ICON = '🛍️';
 
 /* ─── Bengali floral SVG background ─────────────────────────────── */
 const FloralPatternBg = () => (
@@ -144,17 +126,30 @@ const HeaderInner: React.FC = () => {
             .catch(() => {});
     }, []);
 
-    /* ── Build nav tree ── */
+    /* ── Build nav tree dynamically from categories ── */
     const navTree = useMemo(() => {
-        return CATEGORY_MENU_DEFS.map(def => {
-            const root = navCategories.find(c => !c.parent && c.slug === def.rootSlug);
-            const children = root
-                ? navCategories.filter(c => {
+        const byOrder = (a: any, b: any) =>
+            (a.order || 0) - (b.order || 0) || String(a.name).localeCompare(String(b.name));
+
+        const roots = navCategories
+            .filter(c => !c.parent && c.isActive !== false && c.showInMenu !== false)
+            .sort(byOrder);
+
+        return roots.map(root => {
+            const children = navCategories
+                .filter(c => {
                     const pid = c.parent?._id || c.parent;
-                    return pid === root._id;
+                    return pid === root._id && c.isActive !== false && c.showInMenu !== false;
                 })
-                : [];
-            return { ...def, children };
+                .sort(byOrder);
+
+            return {
+                label:    root.name,
+                icon:     root.icon || DEFAULT_MENU_ICON,
+                rootSlug: root.slug,
+                href:     `/category/${root.slug}`,
+                children,
+            };
         });
     }, [navCategories]);
 
@@ -251,7 +246,7 @@ const HeaderInner: React.FC = () => {
 
     const isHomeActive     = pathname === '/';
     const isContactActive  = pathname === '/contact';
-    const isCatActive = (def: typeof CATEGORY_MENU_DEFS[0]) =>
+    const isCatActive = (def: { rootSlug: string }) =>
         pathname === `/category/${def.rootSlug}` || pathname.startsWith(`/category/${def.rootSlug}/`);
 
     const navLinkStyle = (active: boolean) => ({
@@ -335,14 +330,16 @@ const HeaderInner: React.FC = () => {
                                                 onMouseLeave={e => { if (!active) navHoverOff(e); }}
                                             >
                                                 <span>{cat.label}</span>
-                                                <FiChevronDown
-                                                    size={13}
-                                                    style={{
-                                                        color:      active ? MAROON : '#5a3e2b80',
-                                                        transition: 'transform 0.2s',
-                                                        transform:  openDropdown === cat.label ? 'rotate(180deg)' : 'none',
-                                                    }}
-                                                />
+                                                {cat.children.length > 0 && (
+                                                    <FiChevronDown
+                                                        size={13}
+                                                        style={{
+                                                            color:      active ? MAROON : '#5a3e2b80',
+                                                            transition: 'transform 0.2s',
+                                                            transform:  openDropdown === cat.label ? 'rotate(180deg)' : 'none',
+                                                        }}
+                                                    />
+                                                )}
                                                 {active && (
                                                     <span className="absolute bottom-1 left-4 right-4 h-0.5 rounded-full" style={{ background: `linear-gradient(to right, ${MAROON}, ${GOLD})` }} />
                                                 )}
@@ -619,16 +616,18 @@ const HeaderInner: React.FC = () => {
                                                         {cat.label}
                                                         {active && <span className="ml-auto text-xs mr-1" style={{ color: GOLD }}>◆</span>}
                                                     </Link>
-                                                    <button
-                                                        onClick={() => setOpenMobileAccordion(isOpen ? null : cat.label)}
-                                                        className="p-2 rounded-lg transition-colors mr-1"
-                                                        style={{ color: isOpen ? MAROON : '#5a3e2b80' }}
-                                                    >
-                                                        <FiChevronDown
-                                                            size={15}
-                                                            style={{ transition: 'transform 0.2s', transform: isOpen ? 'rotate(180deg)' : 'none' }}
-                                                        />
-                                                    </button>
+                                                    {cat.children.length > 0 && (
+                                                        <button
+                                                            onClick={() => setOpenMobileAccordion(isOpen ? null : cat.label)}
+                                                            className="p-2 rounded-lg transition-colors mr-1"
+                                                            style={{ color: isOpen ? MAROON : '#5a3e2b80' }}
+                                                        >
+                                                            <FiChevronDown
+                                                                size={15}
+                                                                style={{ transition: 'transform 0.2s', transform: isOpen ? 'rotate(180deg)' : 'none' }}
+                                                            />
+                                                        </button>
+                                                    )}
                                                 </div>
 
                                                 <AnimatePresence>
