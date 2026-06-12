@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
+import { APP_DATA_READY_EVENT, isAppDataReady } from '@/utils/appReady';
 
 const Preloader: React.FC = () => {
     const [isLoading, setIsLoading] = useState(true);
@@ -8,6 +9,15 @@ const Preloader: React.FC = () => {
     const [progress, setProgress] = useState(0);
 
     useEffect(() => {
+        // On the homepage, hold at 90% until the backend data has arrived, so
+        // the preloader covers the fetch instead of finishing before it. Other
+        // routes keep the old behaviour (complete as soon as the page loads).
+        const waitForData = window.location.pathname === '/';
+
+        let pageLoaded = document.readyState === 'complete';
+        let dataReady = !waitForData || isAppDataReady();
+        let finished = false;
+
         const progressInterval = setInterval(() => {
             setProgress(prev => {
                 if (prev >= 90) { clearInterval(progressInterval); return 90; }
@@ -15,7 +25,10 @@ const Preloader: React.FC = () => {
             });
         }, 100);
 
-        const handleLoad = () => {
+        const finish = () => {
+            if (finished || !pageLoaded || !dataReady) return;
+            finished = true;
+            clearInterval(progressInterval);
             setProgress(100);
             setTimeout(() => {
                 setFadeOut(true);
@@ -23,17 +36,25 @@ const Preloader: React.FC = () => {
             }, 300);
         };
 
-        if (document.readyState === 'complete') {
-            handleLoad();
-        } else {
-            window.addEventListener('load', handleLoad);
-        }
+        const onLoad = () => { pageLoaded = true; finish(); };
+        const onDataReady = () => { dataReady = true; finish(); };
 
-        const safetyTimeout = setTimeout(handleLoad, 3000);
-        return () => { 
-            clearInterval(progressInterval); 
+        if (!pageLoaded) window.addEventListener('load', onLoad);
+        if (waitForData && !dataReady) window.addEventListener(APP_DATA_READY_EVENT, onDataReady);
+        finish(); // in case both are already satisfied at mount
+
+        // Safety: never let the preloader hang if the page or data stalls.
+        const safetyTimeout = setTimeout(() => {
+            pageLoaded = true;
+            dataReady = true;
+            finish();
+        }, 8000);
+
+        return () => {
+            clearInterval(progressInterval);
             clearTimeout(safetyTimeout);
-            window.removeEventListener('load', handleLoad);
+            window.removeEventListener('load', onLoad);
+            window.removeEventListener(APP_DATA_READY_EVENT, onDataReady);
         };
     }, []);
 
@@ -137,8 +158,10 @@ const Preloader: React.FC = () => {
                 </div>
             </div>
 
-            {/* Inline Animations */}
-            <style jsx>{`
+            {/* Inline Animations — plain global <style> (not styled-jsx) so the
+                keyframe names match the inline `animation` references and the
+                server/client markup stays identical (no hydration mismatch). */}
+            <style>{`
                 @keyframes preloaderSpin {
                     from { transform: rotate(0deg); }
                     to { transform: rotate(360deg); }
