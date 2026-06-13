@@ -20,7 +20,6 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
-        <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%23800000'/><text x='50%25' y='58%25' dominant-baseline='middle' text-anchor='middle' font-size='20' fill='white'>জ</text></svg>" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link
